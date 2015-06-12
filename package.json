@@ -1,0 +1,31 @@
+{
+  "name": "promise-breaker",
+  "version": "1.0.0",
+  "description": "Script to help write libraries that accept both promises and callbacks.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jwalton/node-promise-breaker"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "chai": "^3.0.0",
+    "coffee-script": "^1.9.3",
+    "es6-promise": "^2.3.0",
+    "mocha": "^2.2.5"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [
+    "promise",
+    "callback",
+    "library"
+  ],
+  "author": "Jason Walton <dev@lucid.thedreaming.org> (https://github.com/jwalton)",
+  "license": "MIT"
+}

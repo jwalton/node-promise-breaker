@@ -1,0 +1,96 @@
+{expect} = require 'chai'
+promiseBreaker = require '../index'
+if !global.Promise?
+    global.Promise = require('es6-promise').Promise
+
+makeTestCases = (testFn, fns) ->
+    it 'should work when called with a callback', (done) ->
+        fn = testFn fns.add
+        expect(fn.length).to.equal 2
+        fn 7, (err, result) ->
+            return done err if err?
+            expect(result).to.equal 8
+            done()
+
+    it 'should return a promise with no callback', ->
+        fn = testFn fns.add
+        fn(7)
+        .then (result) ->
+            expect(result).to.equal 8
+
+    it 'should work for functions which return an error (cb)', (done) ->
+        fn = testFn fns.err
+        expect(fn.length).to.equal 2
+        fn 7, (err, result) ->
+            expect(err).to.exist
+            done()
+
+    it 'should work for functions which return an error (p)', ->
+        caught = false
+        fn = testFn fns.err
+        fn(7)
+        .catch (err) ->
+            caught = true
+        .then ->
+            expect(caught).to.be.true
+
+    it 'should work for a function with no parameters (cb)', (done) ->
+        fn = testFn fns.noParams
+        expect(fn.length).to.equal 1
+        fn (err, result) ->
+            return done err if err?
+            expect(result).to.equal "Hello World"
+            done()
+
+    it 'should work for a function with no parameters (p)', ->
+        fn = testFn fns.noParams
+        fn()
+        .then (result) ->
+            expect(result).to.equal "Hello World"
+
+    it 'should set "this" correctly (cb)', (done) ->
+        fn = testFn fns.withThis
+        fn.call {x: 7}, (err, result) ->
+            return done err if err?
+            expect(result).to.equal 7
+            done()
+
+    it 'should set "this" correctly (p)', ->
+        fn = testFn fns.withThis
+        fn.call({x: 7})
+        .then (result) ->
+            expect(result).to.equal 7
+
+describe 'making promises (make)', ->
+    fns = {
+        add: (x, done) ->
+            done null, x + 1
+
+        err: (x, done) ->
+            done new Error "Error"
+
+        noParams: (done) ->
+            done null, "Hello World"
+
+        withThis: (done) ->
+            done null, @x
+    }
+
+    makeTestCases promiseBreaker.make, fns
+
+describe "making callbacks (break)", ->
+    fns = {
+        add: (x) ->
+            Promise.resolve(x + 1)
+
+        err: (x) ->
+            Promise.reject(new Error("Error"))
+
+        noParams: ->
+            Promise.resolve("Hello World")
+
+        withThis: ->
+            Promise.resolve @x
+    }
+
+    makeTestCases promiseBreaker.break, fns
