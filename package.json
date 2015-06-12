@@ -10,16 +10,17 @@
     "type": "git",
     "url": "https://github.com/jwalton/node-promise-breaker"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "chai": "^3.0.0",
     "coffee-script": "^1.9.3",
+    "coveralls": "^2.11.2",
     "es6-promise": "^2.3.0",
+    "istanbul": "^0.3.15",
     "mocha": "^2.2.5"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "istanbul cover _mocha"
   },
   "keywords": [
     "promise",

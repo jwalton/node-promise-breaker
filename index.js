@@ -1,8 +1,9 @@
 (function (root, factory) {
+    /* istanbul ignore next */
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
         define(['exports'], factory);
-    } else if (typeof exports === 'object') {
+    } else /* istanbul ignore else */ if (typeof exports === 'object') {
         // CommonJS
         factory(exports);
     } else {
@@ -10,6 +11,7 @@
         factory((root.promiseBreaker = {}));
     }
 }(this, function (exports) {
+    /* istanbul ignore next */
     var globals = global || window;
 
     var promiseImpl = null;
@@ -50,13 +52,13 @@
         var fn = new Function(['promiseFn', 'Promise'],
             'return function(' + toList(args, 'done') + ') {\n' +
             '    if(done) {\n' +
-            '        promiseFn.call(' + params.join(', ') + ').then(\n' +
+            '        promiseFn.call(' + toList(params) + ').then(\n' +
             '            function(result) {done(null, result);},\n' +
             '            function(err) {done(err);}\n' +
             '        );\n' +
             '        return null;\n' +
             '    } else {\n' +
-            '        return promiseFn.call(' + params.join(', ') + ');\n' +
+            '        return promiseFn.call(' + toList(params) + ');\n' +
             '    }\n' +
             '};'
         );

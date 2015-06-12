@@ -94,3 +94,31 @@ describe "making callbacks (break)", ->
     }
 
     makeTestCases promiseBreaker.break, fns
+
+describe "setPromise", ->
+    class CustomPromise
+        constructor: (fn) ->
+            @promise = new Promise(fn)
+
+        then: (a, b) ->
+            @promise.then(a,b)
+
+        catch: (a) ->
+            @promise.catch(a)
+
+        foo: 7
+
+    before ->
+        promiseBreaker.setPromise CustomPromise
+
+    after ->
+        promiseBreaker.setPromise null
+
+    it 'should work', ->
+        fn = (done) ->
+            done null, 7
+
+        fn = promiseBreaker.make fn
+        result = fn()
+
+        expect(result.foo).to.exist
