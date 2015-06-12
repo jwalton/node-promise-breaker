@@ -1,5 +1,7 @@
 Helps you write libraries that accept both promises and callbacks, using which ever you prefer.
 
+[![Build Status](https://travis-ci.org/jwalton/node-promise-breaker.svg)](https://travis-ci.org/jwalton/node-promise-breaker)
+
 ## Installation
 
     npm install --save promise-breaker
