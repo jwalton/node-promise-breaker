@@ -49,9 +49,9 @@ also pretty important if you prefer to write your library using Promises interna
 
 ```
 // We're going to make some promises from callbacks
-var make = require('promise-breaker').make;
+var pb = require('promise-breaker');
 
-exports.myFunc = make(function(done) {
+exports.myFunc = pb.make(function(done) {
     done(null, "Hello World");
 });
 ```
@@ -61,9 +61,9 @@ or if you prefer Promise style:
 
 ```
 // We're going to break some promises down into callbacks
-var break = require('promise-breaker').break;
+var pb = require('promise-breaker')
 
-exports.myFunc = break(function() {
+exports.myFunc = pb.break(function() {
     Promise.resolve("Hello World");
 });
 ```
