@@ -14,86 +14,109 @@
     /* istanbul ignore next */
     var globals = global || window;
 
-    var promiseImpl = null;
+    /* Note if `promiseImpl` is `null`, this will use globals.Promise. */
+    exports.withPromise = function(promiseImpl) {
+        answer = {}
 
-    exports.setPromise = function(p) {
-        promiseImpl = p;
-    }
+        answer.make = function(asyncFn) {
+            var args = makeParams(asyncFn.length - 1);
 
-    exports.make = function(asyncFn) {
-        var args = makeParams(asyncFn.length - 1);
+            var fn = new Function(['asyncFn', 'Promise'],
+                'return function(' + toList(args, 'done') + ') {\n' +
+                '    if(done) {\n' +
+                '        return asyncFn.call(this, ' + toList(args, 'done') + ');\n' +
+                '    } else {\n' +
+                '        var _this = this;\n' +
+                '        return new Promise(function(resolve, reject) {\n' +
+                '            asyncFn.call(_this, ' + toList(args, '') + ' function(err, result) {\n' +
+                '                if(err) {\n' +
+                '                    reject(err);\n' +
+                '                } else {\n' +
+                '                    resolve(result);\n' +
+                '                }\n' +
+                '            });\n' +
+                '        });\n' +
+                '    }\n' +
+                '};'
+            );
+            return fn(asyncFn, promiseImpl || globals.Promise);
+        };
 
-        var fn = new Function(['asyncFn', 'Promise'],
-            'return function(' + toList(args, 'done') + ') {\n' +
-            '    if(done) {\n' +
-            '        return asyncFn.call(this, ' + toList(args, 'done') + ');\n' +
-            '    } else {\n' +
-            '        var _this = this;\n' +
-            '        return new Promise(function(resolve, reject) {\n' +
-            '            asyncFn.call(_this, ' + toList(args, '') + ' function(err, result) {\n' +
-            '                if(err) {\n' +
-            '                    reject(err);\n' +
-            '                } else {\n' +
-            '                    resolve(result);\n' +
-            '                }\n' +
-            '            });\n' +
-            '        });\n' +
-            '    }\n' +
-            '};'
-        );
-        return fn(asyncFn, promiseImpl || globals.Promise);
-    };
+        answer['break'] = function(promiseFn) {
+            var args = makeParams(promiseFn.length);
+            var params = ['this'].concat(args);
 
+            var fn = new Function(['promiseFn'],
+                'return function(' + toList(args, 'done') + ') {\n' +
+                '    if(done) {\n' +
+                '        promiseFn.call(' + toList(params) + ').then(\n' +
+                '            function(result) {done(null, result);},\n' +
+                '            function(err) {done(err);}\n' +
+                '        );\n' +
+                '        return null;\n' +
+                '    } else {\n' +
+                '        return promiseFn.call(' + toList(params) + ');\n' +
+                '    }\n' +
+                '};'
+            );
+            return fn(promiseFn);
+        };
 
-    exports.break = function(promiseFn) {
-        var args = makeParams(promiseFn.length);
-        var params = ['this'].concat(args);
+        answer.applyFn = answer['break'](function(fn, argumentCount, thisArg, args) {
+            var complete = false;
 
-        var fn = new Function(['promiseFn'],
-            'return function(' + toList(args, 'done') + ') {\n' +
-            '    if(done) {\n' +
-            '        promiseFn.call(' + toList(params) + ').then(\n' +
-            '            function(result) {done(null, result);},\n' +
-            '            function(err) {done(err);}\n' +
-            '        );\n' +
-            '        return null;\n' +
-            '    } else {\n' +
-            '        return promiseFn.call(' + toList(params) + ');\n' +
-            '    }\n' +
-            '};'
-        );
-        return fn(promiseFn);
-    };
+            // Clone args
+            if(!args) {args = [];}
+            args = args.slice(0);
+            while(args.length < argumentCount) {
+                args.push(null);
+            }
 
-    exports.applyFn = exports.break(function(fn, argumentCount, thisArg, args) {
-        var complete = false;
+            var donePromise = new (promiseImpl || globals.Promise)(function(resolve, reject) {
+                // Pass in a callback.
+                args[argumentCount] = function(err, result) {
+                    if(err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                };
+            });
 
-        // Clone args
-        if(!args) {args = [];}
-        args = args.slice(0);
-        while(args.length < argumentCount) {
-            args.push(null);
-        }
+            var returnedPromise = fn.apply(thisArg, args);
+            if(returnedPromise) {
+                return returnedPromise;
+            } else {
+                return donePromise;
+            }
 
-        var donePromise = new (promiseImpl || globals.Promise)(function(resolve, reject) {
-            // Pass in a callback.
-            args[argumentCount] = function(err, result) {
-                if(err) {
-                    reject(err);
-                } else {
-                    resolve(result);
-                }
-            };
         });
 
-        var returnedPromise = fn.apply(thisArg, args);
-        if(returnedPromise) {
-            return returnedPromise;
-        } else {
-            return donePromise;
-        }
+        answer.callFn = function() {
+            var fn = arguments[0];
+            var argumentCount = arguments[1];
+            var thisArg = arguments[2];
 
-    });
+            var maxArgumentsToFetch = Math.min(arguments.length - 3, argumentCount);
+            var args = [];
+            if(maxArgumentsToFetch > 0) {
+                args = [].slice.call(arguments, 3, 3 + maxArgumentsToFetch)
+            }
+
+            // Fetch `done` if it's there.
+            done = arguments[3 + argumentCount];
+
+            return answer.applyFn(fn, argumentCount, thisArg, args, done);
+        };
+
+        return answer;
+    }
+
+    usingDefaultPromise = exports.withPromise();
+    exports.make = usingDefaultPromise.make;
+    exports['break'] = usingDefaultPromise['break'];
+    exports.applyFn = usingDefaultPromise.applyFn;
+    exports.callFn = usingDefaultPromise.callFn;
 
     function makeParams(count) {
         var answer = [];

@@ -1,10 +1,12 @@
 [![Build Status](https://travis-ci.org/jwalton/node-promise-breaker.svg)](https://travis-ci.org/jwalton/node-promise-breaker)
 [![Coverage Status](https://coveralls.io/repos/jwalton/node-promise-breaker/badge.svg)](https://coveralls.io/r/jwalton/node-promise-breaker)
 
-## What is it
+## What is it?
 
 `promise-breaker` makes it easy to write functions that will accept an optional callback, or return
-a Promise.  It's a library that makes it easy to write libraries that other people want to use.
+a Promise if a callback is not provided.  You can use callbacks or Promises in your implementation,
+and callers can call with either a callback or expect a Promise.  It's a library that makes it easy
+to write libraries for others.
 
 ## Installation
 
@@ -23,10 +25,17 @@ Then somewhere in your node.js application:
         global.Promise = require('es6-promise').Promise;
     }
 
-Or, if you don't want to set the global:
+Or in your client-side app:
 
-    promiseBreaker = require('promise-breaker');
-    promiseBreaker.setPromise(require('es6-promise').Promise);
+    if(!window.Promise) {
+        window.Promise = require('es6-promise').Promise;
+    }
+
+If you don't want to set the global, you can pass an optional Promise implementation to
+`promise-breaker`:
+
+    var MyPromise = require('es6-promise').Promise;
+    promiseBreaker = require('promise-breaker').withPromise(MyPromise);
 
 ## Summary
 
@@ -82,7 +91,7 @@ instead.
 
 ## pb.applyFn(fn, argumentCount, thisArg, args[, cb])
 
-Much like `[Function.prototype.apply()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call)`,
+Much like [`Function.prototype.apply()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call),
 this calls a function, but this lets you call into a function when you don't know whether the
 function is expecting a callback or is going to return a Promise.  `fn` is the function you wish
 to call, `argumentCount` is the number of arguments you expect the function to take (not including
@@ -93,3 +102,7 @@ based, otherwise `applyFn` will wait for the callback to be called.
 If `cb` is provided, `applyFn` will call into `cb` with a result, otherwise `applyFn` will itself
 return a Promise.
 
+## pb.callFn(fn, argumentCount, thisArg[, arg1[, arg2[, ...[, cb]]]])
+
+This is the [`Function.prototype.call()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call)
+equivalent of `applyFn()`.

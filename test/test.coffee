@@ -95,7 +95,7 @@ describe "making callbacks (break)", ->
 
     makeTestCases promiseBreaker.break, fns
 
-describe "setPromise", ->
+describe "Use custom promise", ->
     class CustomPromise
         constructor: (fn) ->
             @promise = new Promise(fn)
@@ -108,17 +108,13 @@ describe "setPromise", ->
 
         foo: 7
 
-    before ->
-        promiseBreaker.setPromise CustomPromise
-
-    after ->
-        promiseBreaker.setPromise null
+    customPb = promiseBreaker.withPromise CustomPromise
 
     it 'should work', ->
         fn = (done) ->
             done null, 7
 
-        fn = promiseBreaker.make fn
+        fn = customPb.make fn
         result = fn()
 
         expect(result.foo).to.exist
@@ -160,3 +156,31 @@ describe "applyFn", ->
         promiseBreaker.applyFn(fn, 0)
         .then (result) ->
             expect(result).to.equal "hello"
+
+describe "callFn", ->
+    it 'should work for a function that expects a callback', ->
+        thisObj = {}
+        fn = (x, y, done) ->
+            expect(this).to.equal thisObj
+            done null, x + y
+
+        promiseBreaker.callFn(fn, 2, thisObj, 2, 4)
+        .then (result) ->
+            expect(result).to.equal 6
+
+    it 'should work if we don\'t supply enough arguments', ->
+        fn = (x, y, done) ->
+            done null, "hello"
+
+        promiseBreaker.callFn(fn, 2)
+        .then (result) ->
+            expect(result).to.equal "hello"
+
+    it 'should work with a callback', (done) ->
+        fn = (x, y, done) ->
+            done null, x + y
+
+        promiseBreaker.callFn fn, 2, null, 2, 4, (err, result) ->
+            expect(err).to.not.exist
+            expect(result).to.equal 6
+            done()
