@@ -1,7 +1,10 @@
-Helps you write libraries that accept both promises and callbacks, using which ever you prefer.
-
 [![Build Status](https://travis-ci.org/jwalton/node-promise-breaker.svg)](https://travis-ci.org/jwalton/node-promise-breaker)
 [![Coverage Status](https://coveralls.io/repos/jwalton/node-promise-breaker/badge.svg)](https://coveralls.io/r/jwalton/node-promise-breaker)
+
+## What is it
+
+`promise-breaker` makes it easy to write functions that will accept an optional callback, or return
+a Promise.  It's a library that makes it easy to write libraries that other people want to use.
 
 ## Installation
 
@@ -27,43 +30,21 @@ Or, if you don't want to set the global:
 
 ## Summary
 
-Let's say you're writing a JavaScript library.  You know that some people are going to want
-to use callbacks, and some people are going to want to use Promises.  You could write a lot
-of code that looks like this:
+With the growing popularity of Promises these days, if you're a library author, it's nice to
+be able to provide your clients with a library that will take an optional callback, and if the
+callback isn't provided, return a Promise.  If you've ever tried to do this, you know that there's
+a lot of finicky boilerplate involved in every function you write.  Providing callback support is
+also pretty important if you prefer to write your library using Promises internally.
 
-```
-exports.myFunc = function(done) {
-    var p = new Promise( function(resolve, reject) {
-        doStuff(function(err, result) {
-            if(err) {
-                reject(err);
-            } else {
-                resolve(result);
-            }
-            if(done) {
-                done(err, result);
-            }
-        });
-    });
-
-    if(done) {
-        return null;
-    } else {
-        return p;
-    }
-}
-```
-
-This is a pretty simple case, and that's already an awful lot of boilerplate.  'promise-breaker'
-makes this really easy.  If you prefer writing in callback style:
+'promise-breaker' makes this really easy.  If you prefer writing in callback style:
 
 ```
 // We're going to make some promises from callbacks
-var pb = require('promise-breaker').make;
+var make = require('promise-breaker').make;
 
-exports.myFunc = pb function(done) {
+exports.myFunc = make(function(done) {
     done(null, "Hello World");
-}
+});
 ```
 
 or if you prefer Promise style:
@@ -71,11 +52,11 @@ or if you prefer Promise style:
 
 ```
 // We're going to break some promises down into callbacks
-var pb = require('promise-breaker').break;
+var break = require('promise-breaker').break;
 
-exports.myFunc = pb function() {
+exports.myFunc = break(function() {
     Promise.resolve("Hello World");
-}
+});
 ```
 
 No matter which approach you take, users of your library can now call `myFunc(done)`, or they
@@ -98,3 +79,17 @@ is not provieded, then the new function will return a Promise.
 like the original function.  If a callback is provided, then the generated function will return
 `null`, and will pass any results that would have been returned via the Promise via the callback
 instead.
+
+## pb.applyFn(fn, argumentCount, thisArg, args[, cb])
+
+Much like `[Function.prototype.apply()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call)`,
+this calls a function, but this lets you call into a function when you don't know whether the
+function is expecting a callback or is going to return a Promise.  `fn` is the function you wish
+to call, `argumentCount` is the number of arguments you expect the function to take (not including
+the callback).  Under the hood, this will call `fn` and pass in a callback as the
+`arugmentCount + 1`th parameter.  If a Promise is returned, `applyFn` will assume `fn` is Promise
+based, otherwise `applyFn` will wait for the callback to be called.
+
+If `cb` is provided, `applyFn` will call into `cb` with a result, otherwise `applyFn` will itself
+return a Promise.
+

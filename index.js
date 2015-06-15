@@ -49,7 +49,7 @@
         var args = makeParams(promiseFn.length);
         var params = ['this'].concat(args);
 
-        var fn = new Function(['promiseFn', 'Promise'],
+        var fn = new Function(['promiseFn'],
             'return function(' + toList(args, 'done') + ') {\n' +
             '    if(done) {\n' +
             '        promiseFn.call(' + toList(params) + ').then(\n' +
@@ -62,8 +62,38 @@
             '    }\n' +
             '};'
         );
-        return fn(promiseFn, promiseImpl || globals.Promise);
+        return fn(promiseFn);
     };
+
+    exports.applyFn = exports.break(function(fn, argumentCount, thisArg, args) {
+        var complete = false;
+
+        // Clone args
+        if(!args) {args = [];}
+        args = args.slice(0);
+        while(args.length < argumentCount) {
+            args.push(null);
+        }
+
+        var donePromise = new (promiseImpl || globals.Promise)(function(resolve, reject) {
+            // Pass in a callback.
+            args[argumentCount] = function(err, result) {
+                if(err) {
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            };
+        });
+
+        var returnedPromise = fn.apply(thisArg, args);
+        if(returnedPromise) {
+            return returnedPromise;
+        } else {
+            return donePromise;
+        }
+
+    });
 
     function makeParams(count) {
         var answer = [];

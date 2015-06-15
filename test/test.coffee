@@ -122,3 +122,41 @@ describe "setPromise", ->
         result = fn()
 
         expect(result.foo).to.exist
+
+describe "applyFn", ->
+    it 'should work for a function that expects a callback', ->
+        thisObj = {}
+        fn = (x, y, done) ->
+            expect(this).to.equal thisObj
+            done null, x + y
+
+        promiseBreaker.applyFn(fn, 2, thisObj, [2, 4])
+        .then (result) ->
+            expect(result).to.equal 6
+
+    it 'should work for a function that expects a callback, and returns an error', ->
+        fn = (x, y, done) ->
+            done new Error("foo")
+
+        caught = false
+        promiseBreaker.applyFn(fn, 2, null, [2, 4])
+        .catch (err) ->
+            expect(err.message).to.equal "foo"
+            caught = true
+        .then (result) ->
+            expect(caught).to.be.true
+
+    it 'should work for a function that expects a callback when we don\'t pass enough arugments', ->
+        fn = (x, y, done) ->
+            done null, "hello"
+
+        promiseBreaker.applyFn(fn, 2)
+        .then (result) ->
+            expect(result).to.equal "hello"
+
+    it 'should work for a function that returns a promise', ->
+        fn = -> Promise.resolve("hello")
+
+        promiseBreaker.applyFn(fn, 0)
+        .then (result) ->
+            expect(result).to.equal "hello"
