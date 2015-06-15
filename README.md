@@ -89,7 +89,7 @@ like the original function.  If a callback is provided, then the generated funct
 `null`, and will pass any results that would have been returned via the Promise via the callback
 instead.
 
-## pb.applyFn(fn, argumentCount, thisArg, args[, cb])
+### pb.applyFn(fn, argumentCount, thisArg, args[, cb])
 
 Much like [`Function.prototype.apply()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call),
 this calls a function, but this lets you call into a function when you don't know whether the
@@ -102,7 +102,13 @@ based, otherwise `applyFn` will wait for the callback to be called.
 If `cb` is provided, `applyFn` will call into `cb` with a result, otherwise `applyFn` will itself
 return a Promise.
 
-## pb.callFn(fn, argumentCount, thisArg[, arg1[, arg2[, ...[, cb]]]])
+### pb.callFn(fn, argumentCount, thisArg[, arg1[, arg2[, ...[, cb]]]])
 
 This is the [`Function.prototype.call()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call)
 equivalent of `applyFn()`.
+
+### pb.withPromise(promiseImpl)
+
+Returns a new `{make, break, applyFn, callFn}` object which uses the specified promiseImpl
+constructor to create new Promises.
+
