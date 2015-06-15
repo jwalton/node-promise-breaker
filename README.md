@@ -76,9 +76,9 @@ can call `myFunc().then(...)`.
 ### pb.make(fn)
 
 `make(fn)` takes a function which accepts a `callback(err, result)` as its last parameter, and
-returns a new function which accepts an optional callback as its last paramater.  If a callback is
+returns a new function which accepts an optional callback as its last parameter.  If a callback is
 provided, this new function will behave exactly like the original function.  If the callback
-is not provieded, then the new function will return a Promise.
+is not provided, then the new function will return a Promise.
 
 ### pb.break(fn)
 
