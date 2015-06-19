@@ -64,7 +64,7 @@ or if you prefer Promise style:
 var pb = require('promise-breaker')
 
 exports.myFunc = pb.break(function() {
-    Promise.resolve("Hello World");
+    return Promise.resolve("Hello World");
 });
 ```
 
