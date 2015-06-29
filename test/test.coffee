@@ -157,6 +157,15 @@ describe "applyFn", ->
         .then (result) ->
             expect(result).to.equal "hello"
 
+    it 'should work for a function that returns a value that isn\'t a promise', ->
+        fn = (x, y, done) ->
+            done null, 'hello'
+            return {}
+
+        promiseBreaker.applyFn(fn, 2, [1, 2])
+        .then (result) ->
+            expect(result).to.equal "hello"
+
 describe "callFn", ->
     it 'should work for a function that expects a callback', ->
         thisObj = {}
