@@ -84,7 +84,7 @@
             });
 
             var returnedPromise = fn.apply(thisArg, args);
-            if(returnedPromise) {
+            if(returnedPromise && returnedPromise.then) {
                 return returnedPromise;
             } else {
                 return donePromise;
