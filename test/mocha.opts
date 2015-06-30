@@ -1,4 +1,5 @@
 --compilers coffee:coffee-script/register
 --reporter spec
 --recursive
+--check-leaks
 --growl

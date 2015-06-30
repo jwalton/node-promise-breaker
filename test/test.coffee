@@ -1,11 +1,14 @@
-{expect} = require 'chai'
-promiseBreaker = require '../index'
-if !global.Promise?
-    global.Promise = require('es6-promise').Promise
+chai           = require 'chai'
+{expect}       = chai
+if !global.Promise? then global.Promise = require('es6-promise').Promise
+
+# Don't `require` promiseBreaker here - do it below in a test, so we benefit from Mocha's
+# global leak detection.
+promiseBreaker = null
 
 makeTestCases = (testFn, fns) ->
     it 'should work when called with a callback', (done) ->
-        fn = testFn fns.add
+        fn = promiseBreaker[testFn] fns.add
         expect(fn.length).to.equal 2
         fn 7, (err, result) ->
             return done err if err?
@@ -13,13 +16,13 @@ makeTestCases = (testFn, fns) ->
             done()
 
     it 'should return a promise with no callback', ->
-        fn = testFn fns.add
+        fn = promiseBreaker[testFn] fns.add
         fn(7)
         .then (result) ->
             expect(result).to.equal 8
 
     it 'should work for functions which return an error (cb)', (done) ->
-        fn = testFn fns.err
+        fn = promiseBreaker[testFn] fns.err
         expect(fn.length).to.equal 2
         fn 7, (err, result) ->
             expect(err).to.exist
@@ -27,7 +30,7 @@ makeTestCases = (testFn, fns) ->
 
     it 'should work for functions which return an error (p)', ->
         caught = false
-        fn = testFn fns.err
+        fn = promiseBreaker[testFn] fns.err
         fn(7)
         .catch (err) ->
             caught = true
@@ -35,7 +38,7 @@ makeTestCases = (testFn, fns) ->
             expect(caught).to.be.true
 
     it 'should work for a function with no parameters (cb)', (done) ->
-        fn = testFn fns.noParams
+        fn = promiseBreaker[testFn] fns.noParams
         expect(fn.length).to.equal 1
         fn (err, result) ->
             return done err if err?
@@ -43,23 +46,32 @@ makeTestCases = (testFn, fns) ->
             done()
 
     it 'should work for a function with no parameters (p)', ->
-        fn = testFn fns.noParams
+        fn = promiseBreaker[testFn] fns.noParams
         fn()
         .then (result) ->
             expect(result).to.equal "Hello World"
 
     it 'should set "this" correctly (cb)', (done) ->
-        fn = testFn fns.withThis
+        fn = promiseBreaker[testFn] fns.withThis
         fn.call {x: 7}, (err, result) ->
             return done err if err?
             expect(result).to.equal 7
             done()
 
     it 'should set "this" correctly (p)', ->
-        fn = testFn fns.withThis
+        fn = promiseBreaker[testFn] fns.withThis
         fn.call({x: 7})
         .then (result) ->
             expect(result).to.equal 7
+
+    it 'should fail with an intelligible error if no function is provided', ->
+        expect(
+            -> promiseBreaker[testFn] null
+        ).to.throw 'Function required'
+
+describe 'require', ->
+    it 'should work', ->
+        promiseBreaker = require '../index'
 
 describe 'making promises (make)', ->
     fns = {
@@ -76,7 +88,27 @@ describe 'making promises (make)', ->
             done null, @x
     }
 
-    makeTestCases promiseBreaker.make, fns
+    makeTestCases 'make', fns
+
+    it 'should fail if global.Promise is undefined', ->
+        p = global.Promise
+        try
+            global.Promise = null
+            expect(
+                -> promiseBreaker.make ->
+            ).to.throw 'Promise is undefined'
+        finally
+            global.Promise = p
+
+    it 'should fail if global.Promise is not a constructor', ->
+        p = global.Promise
+        try
+            global.Promise = {}
+            expect(
+                -> promiseBreaker.make ->
+            ).to.throw 'Expect Promise to be a constructor'
+        finally
+            global.Promise = p
 
 describe "making callbacks (break)", ->
     fns = {
@@ -93,7 +125,7 @@ describe "making callbacks (break)", ->
             Promise.resolve @x
     }
 
-    makeTestCases promiseBreaker.break, fns
+    makeTestCases 'break', fns
 
 describe "Use custom promise", ->
     class CustomPromise
@@ -108,9 +140,8 @@ describe "Use custom promise", ->
 
         foo: 7
 
-    customPb = promiseBreaker.withPromise CustomPromise
-
     it 'should work', ->
+        customPb = promiseBreaker.withPromise CustomPromise
         fn = (done) ->
             done null, 7
 
@@ -118,6 +149,11 @@ describe "Use custom promise", ->
         result = fn()
 
         expect(result.foo).to.exist
+
+    it 'should fail if custom promise is not a constructor', ->
+        expect(
+            -> promiseBreaker.withPromise {}
+        ).to.throw 'Expect Promise to be a constructor'
 
 describe "applyFn", ->
     it 'should work for a function that expects a callback', ->

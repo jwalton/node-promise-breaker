@@ -14,11 +14,34 @@
     /* istanbul ignore next */
     var globals = global || window;
 
+    var isFunction = function(fn) {
+        return !!fn &&
+            (typeof fn == 'object' || typeof fn == 'function') &&
+            Object.prototype.toString.call(fn) == '[object Function]';
+    };
+
+    var validatePromise = function(p) {
+        if(!p)
+            throw new Error('Promise is undefined. Define Promise as global variable or call withPromise()');
+        if(!isFunction(p))
+            throw new Error('Expect Promise to be a constructor');
+    }
+
     /* Note if `promiseImpl` is `null`, this will use globals.Promise. */
     exports.withPromise = function(promiseImpl) {
-        answer = {}
+        // If a promise implementation is provided, we can validate it right away, and fail
+        // earlier.  If not, we can't validate globals.Promise, since globals.Promise might
+        // get polyfilled after promise-breaker is initialized.
+        if(promiseImpl) {
+            validatePromise(promiseImpl);
+        }
+
+        var answer = {};
 
         answer.make = function(asyncFn) {
+            if(!isFunction(asyncFn)) throw new Error('Function required');
+            if(!promiseImpl) validatePromise(globals.Promise);
+
             var args = makeParams(asyncFn.length - 1);
 
             var fn = new Function(['asyncFn', 'Promise'],
@@ -43,6 +66,8 @@
         };
 
         answer['break'] = function(promiseFn) {
+            if(!isFunction(promiseFn)) throw new Error('Function required')
+
             var args = makeParams(promiseFn.length);
             var params = ['this'].concat(args);
 
@@ -104,7 +129,7 @@
             }
 
             // Fetch `done` if it's there.
-            done = arguments[3 + argumentCount];
+            var done = arguments[3 + argumentCount];
 
             return answer.applyFn(fn, argumentCount, thisArg, args, done);
         };
@@ -112,11 +137,13 @@
         return answer;
     }
 
-    usingDefaultPromise = exports.withPromise();
+    var usingDefaultPromise = exports.withPromise();
     exports.make = usingDefaultPromise.make;
     exports['break'] = usingDefaultPromise['break'];
     exports.applyFn = usingDefaultPromise.applyFn;
     exports.callFn = usingDefaultPromise.callFn;
+
+    exports.usingDefaultPromise = usingDefaultPromise;
 
     function makeParams(count) {
         var answer = [];
