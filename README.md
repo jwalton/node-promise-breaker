@@ -80,6 +80,10 @@ returns a new function which accepts an optional callback as its last parameter.
 provided, this new function will behave exactly like the original function.  If the callback
 is not provided, then the new function will return a Promise.
 
+Note that `pb.make()` uses `fn.length` to determine how many arguments the function expects normally,
+so `pb.make()` will not work with functions that do not explicitly define their arugments in
+their function declaration.
+
 ### pb.break(fn)
 
 `break(fn)` is the opposite of `make(fn)`.  `fn` here is a function which returns a Promise.
@@ -88,6 +92,10 @@ is not provided, then the new function will return a Promise.
 like the original function.  If a callback is provided, then the generated function will return
 `null`, and will pass any results that would have been returned via the Promise via the callback
 instead.
+
+Note that `pb.break()` uses `fn.length` to determine how many arguments the function expects normally,
+so `pb.break()` will not work with functions that do not explicitly define their arugments in
+their function declaration.
 
 ### pb.applyFn(fn, argumentCount, thisArg, args[, cb])
 
