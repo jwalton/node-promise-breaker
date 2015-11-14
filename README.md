@@ -81,7 +81,7 @@ provided, this new function will behave exactly like the original function.  If 
 is not provided, then the new function will return a Promise.
 
 Note that `pb.make()` uses `fn.length` to determine how many arguments the function expects normally,
-so `pb.make()` will not work with functions that do not explicitly define their arugments in
+so `pb.make()` will not work with functions that do not explicitly define their arguments in
 their function declaration.
 
 ### pb.break(fn)
@@ -94,7 +94,7 @@ like the original function.  If a callback is provided, then the generated funct
 instead.
 
 Note that `pb.break()` uses `fn.length` to determine how many arguments the function expects normally,
-so `pb.break()` will not work with functions that do not explicitly define their arugments in
+so `pb.break()` will not work with functions that do not explicitly define their arguments in
 their function declaration.
 
 ### pb.applyFn(fn, argumentCount, thisArg, args[, cb])
@@ -104,7 +104,7 @@ this calls a function, but this lets you call into a function when you don't kno
 function is expecting a callback or is going to return a Promise.  `fn` is the function you wish
 to call, `argumentCount` is the number of arguments you expect the function to take (not including
 the callback).  Under the hood, this will call `fn` and pass in a callback as the
-`arugmentCount + 1`th parameter.  If a Promise is returned, `applyFn` will assume `fn` is Promise
+`argumentCount + 1`th parameter.  If a Promise is returned, `applyFn` will assume `fn` is Promise
 based, otherwise `applyFn` will wait for the callback to be called.
 
 If `cb` is provided, `applyFn` will call into `cb` with a result, otherwise `applyFn` will itself
