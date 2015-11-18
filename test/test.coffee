@@ -1,5 +1,4 @@
 chai           = require 'chai'
-chai.use         require 'chai-as-promised'
 {expect}       = chai
 if !global.Promise? then global.Promise = require('es6-promise').Promise
 
@@ -155,29 +154,6 @@ describe "Use custom promise", ->
         expect(
             -> promiseBreaker.withPromise {}
         ).to.throw 'Expect Promise to be a constructor'
-
-describe "asPromise", ->
-    it 'should convert a callback based function to a Promise', ->
-        expect(
-            promiseBreaker.asPromise (done) -> done null, 7
-        ).to.eventually.equal 7
-
-    it 'should handle errors correctly', ->
-        expect(
-            promiseBreaker.asPromise (done) -> done new Error "boom"
-        ).to.be.rejectedWith 'boom'
-
-    it 'should not touch a returned Promise', ->
-        expect(
-            promiseBreaker.asPromise (done) -> Promise.resolve 6
-        ).to.eventually.equal 6
-
-    it 'favor results from a returned Promise over the callback', ->
-        expect(
-            promiseBreaker.asPromise (done) ->
-                done null, 7
-                return Promise.resolve 6
-        ).to.eventually.equal 6
 
 describe "applyFn", ->
     it 'should work for a function that expects a callback', ->

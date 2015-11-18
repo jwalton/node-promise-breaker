@@ -12,40 +12,6 @@ to write libraries for others.
 
     npm install --save promise-breaker
 
-    ## Summary
-
-    With the growing popularity of Promises these days, if you're a library author, it's nice to
-    be able to provide your clients with a library that will take an optional callback, and if the
-    callback isn't provided, return a Promise.  If you've ever tried to do this, you know that there's
-    a lot of finicky boilerplate involved in every function you write.  Providing callback support is
-    also pretty important if you prefer to write your library using Promises internally.
-
-    'promise-breaker' makes this really easy.  If you prefer writing in callback style:
-
-    ```
-    // We're going to make some promises from callbacks
-    var pb = require('promise-breaker');
-
-    exports.myFunc = pb.make(function(done) {
-        done(null, "Hello World");
-    });
-    ```
-
-    or if you prefer Promise style:
-
-
-    ```
-    // We're going to break some promises down into callbacks
-    var pb = require('promise-breaker')
-
-    exports.myFunc = pb.break(function() {
-        return Promise.resolve("Hello World");
-    });
-    ```
-
-    No matter which approach you take, users of your library can now call `myFunc(done)`, or they
-    can call `myFunc().then(...)`.
-
 ## Requirements
 
 This library assumes that `Promise` is a defined global variable.  If this is not the case
@@ -70,6 +36,40 @@ If you don't want to set the global, you can pass an optional Promise implementa
 
     var MyPromise = require('es6-promise').Promise;
     promiseBreaker = require('promise-breaker').withPromise(MyPromise);
+
+## Summary
+
+With the growing popularity of Promises these days, if you're a library author, it's nice to
+be able to provide your clients with a library that will take an optional callback, and if the
+callback isn't provided, return a Promise.  If you've ever tried to do this, you know that there's
+a lot of finicky boilerplate involved in every function you write.  Providing callback support is
+also pretty important if you prefer to write your library using Promises internally.
+
+'promise-breaker' makes this really easy.  If you prefer writing in callback style:
+
+```
+// We're going to make some promises from callbacks
+var pb = require('promise-breaker');
+
+exports.myFunc = pb.make(function(done) {
+    done(null, "Hello World");
+});
+```
+
+or if you prefer Promise style:
+
+
+```
+// We're going to break some promises down into callbacks
+var pb = require('promise-breaker')
+
+exports.myFunc = pb.break(function() {
+    return Promise.resolve("Hello World");
+});
+```
+
+No matter which approach you take, users of your library can now call `myFunc(done)`, or they
+can call `myFunc().then(...)`.
 
 ## API
 
@@ -120,17 +120,3 @@ equivalent of `applyFn()`.
 Returns a new `{make, break, applyFn, callFn}` object which uses the specified promiseImpl
 constructor to create new Promises.
 
-### pb.asPromise(fn)
-
-`asPromise` is sometimes a simpler alternative to `callFn` or `applyFn`.  You pass in a function that takes a single
-callback as a parameter.  `asPromise()` will call this function immediately, and return a Promise that will resolve or
-reject when the callback is called.  Note that if `fn` returns a Promise instead of (or in addition to) calling the
-callback, the callback is ignored and the returned Promise is returned immediately.
-
-Example:
-
-    pb.asPromise(function(done) {
-        done(null, "hello world");
-    }).then(function(result) {
-        console.log(result);
-    });
