@@ -97,24 +97,10 @@
                 args.push(null);
             }
 
-            var donePromise = new (promiseImpl || globals.Promise)(function(resolve, reject) {
-                // Pass in a callback.
-                args[argumentCount] = function(err, result) {
-                    if(err) {
-                        reject(err);
-                    } else {
-                        resolve(result);
-                    }
-                };
+            return answer.asPromise(function(done) {
+                args.push(done)
+                return fn.apply(thisArg, args);
             });
-
-            var returnedPromise = fn.apply(thisArg, args);
-            if(returnedPromise && returnedPromise.then) {
-                return returnedPromise;
-            } else {
-                return donePromise;
-            }
-
         });
 
         answer.callFn = function() {
@@ -134,14 +120,33 @@
             return answer.applyFn(fn, argumentCount, thisArg, args, done);
         };
 
+        answer.asPromise = function(fn, thisArg) {
+            var done;
+            var donePromise = new (promiseImpl || globals.Promise)(function(resolve, reject) {
+                done = function(err, result) {
+                    if(err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                };
+            });
+
+            var returnedPromise = fn.call(thisArg, done);
+            if(returnedPromise && returnedPromise.then) {
+                return returnedPromise;
+            } else {
+                return donePromise;
+            }
+        };
+
         return answer;
     }
 
     var usingDefaultPromise = exports.withPromise();
-    exports.make = usingDefaultPromise.make;
-    exports['break'] = usingDefaultPromise['break'];
-    exports.applyFn = usingDefaultPromise.applyFn;
-    exports.callFn = usingDefaultPromise.callFn;
+    for(var k in usingDefaultPromise) {
+        exports[k] = usingDefaultPromise[k];
+    }
 
     exports.usingDefaultPromise = usingDefaultPromise;
 
