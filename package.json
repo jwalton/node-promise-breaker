@@ -13,6 +13,7 @@
   "dependencies": {},
   "devDependencies": {
     "chai": "^3.0.0",
+    "chai-as-promised": "^5.1.0",
     "coffee-script": "^1.9.3",
     "coveralls": "^2.11.2",
     "es6-promise": "^2.3.0",

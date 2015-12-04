@@ -115,8 +115,14 @@ return a Promise.
 This is the [`Function.prototype.call()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call)
 equivalent of `applyFn()`.
 
+Note that if you do not specify an `argumentCount` it will default to 0.  You can use this handy shortcut:
+
+    pb.callFn(function(done) {doSomething(x, y, z, done);})
+    .then(...)
+
+to call into a callback based function from inside promise-based code.
+
 ### pb.withPromise(promiseImpl)
 
 Returns a new `{make, break, applyFn, callFn}` object which uses the specified promiseImpl
 constructor to create new Promises.
-

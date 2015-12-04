@@ -88,6 +88,8 @@
         };
 
         answer.applyFn = answer['break'](function(fn, argumentCount, thisArg, args) {
+            argumentCount = argumentCount || 0;
+
             var complete = false;
 
             // Clone args
@@ -119,7 +121,7 @@
 
         answer.callFn = function() {
             var fn = arguments[0];
-            var argumentCount = arguments[1];
+            var argumentCount = arguments[1] || 0;
             var thisArg = arguments[2];
 
             var maxArgumentsToFetch = Math.min(arguments.length - 3, argumentCount);
@@ -138,10 +140,9 @@
     }
 
     var usingDefaultPromise = exports.withPromise();
-    exports.make = usingDefaultPromise.make;
-    exports['break'] = usingDefaultPromise['break'];
-    exports.applyFn = usingDefaultPromise.applyFn;
-    exports.callFn = usingDefaultPromise.callFn;
+    for(var k in usingDefaultPromise) {
+        exports[k] = usingDefaultPromise[k];
+    }
 
     exports.usingDefaultPromise = usingDefaultPromise;
 

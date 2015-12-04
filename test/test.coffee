@@ -1,4 +1,5 @@
 chai           = require 'chai'
+chai.use require('chai-as-promised')
 {expect}       = chai
 if !global.Promise? then global.Promise = require('es6-promise').Promise
 
@@ -202,6 +203,14 @@ describe "applyFn", ->
         .then (result) ->
             expect(result).to.equal "hello"
 
+    it 'should work if we do not specify argumentCount', ->
+        fn = (done) -> done null, 7
+
+        expect(
+            promiseBreaker.applyFn fn
+        ).to.eventually.equal 7
+
+
 describe "callFn", ->
     it 'should work for a function that expects a callback', ->
         thisObj = {}
@@ -220,6 +229,13 @@ describe "callFn", ->
         promiseBreaker.callFn(fn, 2)
         .then (result) ->
             expect(result).to.equal "hello"
+
+    it 'should work if we do not specify argumentCount', ->
+        fn = (done) -> done null, 7
+
+        expect(
+            promiseBreaker.callFn fn
+        ).to.eventually.equal 7
 
     it 'should work with a callback', (done) ->
         fn = (x, y, done) ->
