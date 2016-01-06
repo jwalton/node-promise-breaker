@@ -14,17 +14,35 @@
     /* istanbul ignore next */
     var globals = global || window;
 
+    var makeParams = function(count) {
+        var answer = [];
+        for(var i = 0; i < count; i++) {
+            answer.push('p' + i);
+        }
+        return answer;
+    }
+
+    var toList = function(params, extraParam) {
+        if(typeof extraParam !== "undefined" && extraParam !== null) {
+            params = params.concat([extraParam]);
+        }
+        return params.join(", ");
+
+    }
+
     var isFunction = function(fn) {
         return !!fn &&
-            (typeof fn == 'object' || typeof fn == 'function') &&
-            Object.prototype.toString.call(fn) == '[object Function]';
+            (typeof fn === 'object' || typeof fn === 'function') &&
+            Object.prototype.toString.call(fn) === '[object Function]';
     };
 
     var validatePromise = function(p) {
-        if(!p)
+        if(!p) {
             throw new Error('Promise is undefined. Define Promise as global variable or call withPromise()');
-        if(!isFunction(p))
+        }
+        if(!isFunction(p)) {
             throw new Error('Expect Promise to be a constructor');
+        }
     }
 
     /* Note if `promiseImpl` is `null`, this will use globals.Promise. */
@@ -39,8 +57,8 @@
         var answer = {};
 
         answer.make = function(asyncFn) {
-            if(!isFunction(asyncFn)) throw new Error('Function required');
-            if(!promiseImpl) validatePromise(globals.Promise);
+            if(!isFunction(asyncFn)) {throw new Error('Function required');}
+            if(!promiseImpl) {validatePromise(globals.Promise);}
 
             var args = makeParams(asyncFn.length - 1);
 
@@ -66,7 +84,7 @@
         };
 
         answer['break'] = function(promiseFn) {
-            if(!isFunction(promiseFn)) throw new Error('Function required')
+            if(!isFunction(promiseFn)) {throw new Error('Function required');}
 
             var args = makeParams(promiseFn.length);
             var params = ['this'].concat(args);
@@ -90,8 +108,6 @@
         answer.applyFn = answer['break'](function(fn, argumentCount, thisArg, args) {
             argumentCount = argumentCount || 0;
 
-            var complete = false;
-
             // Clone args
             if(!args) {args = [];}
             args = args.slice(0);
@@ -113,9 +129,8 @@
             var returnedPromise = fn.apply(thisArg, args);
             if(returnedPromise && returnedPromise.then) {
                 return returnedPromise;
-            } else {
-                return donePromise;
             }
+            return donePromise;
 
         });
 
@@ -141,25 +156,11 @@
 
     var usingDefaultPromise = exports.withPromise();
     for(var k in usingDefaultPromise) {
-        exports[k] = usingDefaultPromise[k];
+        if ({}.hasOwnProperty.call(usingDefaultPromise, k)) {
+            exports[k] = usingDefaultPromise[k];
+        }
     }
 
     exports.usingDefaultPromise = usingDefaultPromise;
-
-    function makeParams(count) {
-        var answer = [];
-        for(var i = 0; i < count; i++) {
-            answer.push('p' + i);
-        }
-        return answer;
-    }
-
-    function toList(params, extraParam) {
-        if(extraParam != null) {
-            params = params.concat([extraParam]);
-        }
-        return params.join(", ");
-
-    }
 
 }));

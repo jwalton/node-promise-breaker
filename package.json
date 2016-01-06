@@ -17,11 +17,12 @@
     "coffee-script": "^1.9.3",
     "coveralls": "^2.11.2",
     "es6-promise": "^2.3.0",
+    "eslint": "^1.10.3",
     "istanbul": "^0.3.15",
     "mocha": "^2.2.5"
   },
   "scripts": {
-    "test": "istanbul cover _mocha"
+    "test": "istanbul cover _mocha && eslint ./index.js"
   },
   "keywords": [
     "promise",
