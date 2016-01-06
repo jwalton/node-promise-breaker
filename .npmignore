@@ -1,4 +1,5 @@
 /test
 /coverage
-.travis.yml
-.eslintrc
+/.travis.yml
+/.eslintrc
+/CHANGELOG.md

@@ -80,6 +80,29 @@ returns a new function which accepts an optional callback as its last parameter.
 provided, this new function will behave exactly like the original function.  If the callback
 is not provided, then the new function will return a Promise.
 
+Since Promises only allow a single value to be returned, if `fn` passes more than two arguments to `callback(...)`,
+then (as of v3.0.0) any arguments after the error will be transformed into an array and returned via the Promise as a
+single combined argument.  This does not affect the case where the transformed function is called with a callback.
+For example:
+
+    var myFunc = pb.make(function(callback) {
+        // We're returning multiple values via callback
+        callback(null, "a", "b");
+    })
+
+    // Callback style
+    myFunc(function(err, a, b) {...});
+
+    // Promise style
+    myFunc()
+    .then(function(results) {
+        // Promises only let us return a single value, so we return an array.
+        var a = results[0];
+        var b = results[1];
+        ...
+    })
+    .catch(function(err) {...});
+
 Note that `pb.make()` uses `fn.length` to determine how many arguments the function expects normally,
 so `pb.make()` will not work with functions that do not explicitly define their arguments in
 their function declaration.

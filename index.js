@@ -73,7 +73,12 @@
                 '                if(err) {\n' +
                 '                    reject(err);\n' +
                 '                } else {\n' +
-                '                    resolve(result);\n' +
+                                     // If multiple arguments were passed to the callback, then turn them into an array.
+                '                    if(arguments.length > 2) {' +
+                '                        resolve([].slice.call(arguments, 1));' +
+                '                    } else {' +
+                '                        resolve(result);\n' +
+                '                    }' +
                 '                }\n' +
                 '            });\n' +
                 '        });\n' +
