@@ -1,6 +1,6 @@
 {
   "name": "promise-breaker",
-  "version": "2.2.1",
+  "version": "3.0.0",
   "description": "Library to help write libraries that accept both promises and callbacks.",
   "main": "index.js",
   "directories": {
