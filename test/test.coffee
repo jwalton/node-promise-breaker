@@ -109,6 +109,19 @@ describe 'making promises (make)', ->
         finally
             global.Promise = p
 
+    it 'should return multiple arguments passed to the callback as an array', ->
+        fn = promiseBreaker.make (done) -> done null, "a", "b"
+        expect(fn()).to.eventually.eql ["a", "b"]
+
+        fn = promiseBreaker.make (done) -> done null, "a", null
+        expect(fn()).to.eventually.eql ["a", null]
+
+        fn = promiseBreaker.make (done) -> done null, "a", undefined
+        expect(fn()).to.eventually.eql ["a", undefined]
+
+        fn = promiseBreaker.make (done) -> done null, "a"
+        expect(fn()).to.eventually.eql "a"
+
 describe "making callbacks (break)", ->
     fns = {
         add: (x) ->
