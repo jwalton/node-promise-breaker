@@ -81,8 +81,9 @@ provided, this new function will behave exactly like the original function.  If 
 is not provided, then the new function will return a Promise.
 
 Since Promises only allow a single value to be returned, if `fn` passes more than two arguments to `callback(...)`,
-then (as of v3.0.0) these arguments will be transformed into an array and passed to the Promise (although they will
-be left alone if the resulting function is called with a callback).  For example:
+then (as of v3.0.0) any arguments after the error will be transformed into an array and returned via the Promise as a
+single combined argument.  This does not affect the case where the transformed function is called with a callback.
+For example:
 
     var myFunc = pb.make(function(callback) {
         // We're returning multiple values via callback
