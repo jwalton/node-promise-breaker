@@ -89,6 +89,13 @@ describe 'making promises (make)', ->
         fn = promiseBreaker.make (done) -> done null, undefined
         expect(fn()).to.eventually.equal undefined
 
+    it 'should return undefined if the fn returns nothing', ->
+        fn = promiseBreaker.make (done) -> done null
+        expect(fn()).to.eventually.equal undefined
+        .then ->
+            fn = promiseBreaker.make (done) -> done()
+            expect(fn()).to.eventually.equal undefined
+
     it 'should fail if global.Promise is undefined', ->
         p = global.Promise
         try
