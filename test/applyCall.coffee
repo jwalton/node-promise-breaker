@@ -48,7 +48,7 @@ describe "applyFn", ->
             done null, 'hello'
             return {}
 
-        promiseBreaker.applyFn(fn, 2, [1, 2])
+        promiseBreaker.applyFn(fn, 2, null, [1, 2])
         .then (result) ->
             expect(result).to.equal "hello"
 
@@ -58,6 +58,79 @@ describe "applyFn", ->
         expect(
             promiseBreaker.applyFn fn
         ).to.eventually.equal 7
+
+    it 'should work for a function that returns a scalar', ->
+        fn = -> 7
+
+        expect(
+            promiseBreaker.applyFn(fn)
+        ).to.eventually.equal 7
+
+    it 'should error if function has incorrect number of parameters', ->
+        fn = (a, b) -> 7
+
+        expect(
+            promiseBreaker.applyFn(fn, 3, null, ["hello", "world", 6])
+        ).to.be.rejectedWith("Expected function with 3 arguments which returns Promise, " +
+            "or function with 4 arguments which takes callback.")
+
+
+describe "apply", ->
+    it 'should work for a function that expects a callback', ->
+        thisObj = {}
+        fn = (x, y, done) ->
+            expect(this).to.equal thisObj
+            done null, x + y
+
+        promiseBreaker.apply(fn, thisObj, [2, 4])
+        .then (result) ->
+            expect(result).to.equal 6
+
+    it 'should work for a function that expects a callback, and returns an error', ->
+        fn = (x, y, done) ->
+            done new Error("foo")
+
+        expect(
+            promiseBreaker.apply(fn, null, [2, 4])
+        ).to.be.rejectedWith("foo")
+
+    it 'should work for a function that returns a promise', ->
+        fn = -> Promise.resolve("hello")
+
+        promiseBreaker.apply(fn, null, [])
+        .then (result) ->
+            expect(result).to.equal "hello"
+
+    it 'should work for a function that returns a value that isn\'t a promise', ->
+        fn = (x, y, done) ->
+            done null, 'hello'
+            return {}
+
+        promiseBreaker.apply(fn, null, [1, 2])
+        .then (result) ->
+            expect(result).to.equal "hello"
+
+    it 'should work if we do not specify argumentCount', ->
+        fn = (done) -> done null, 7
+
+        expect(
+            promiseBreaker.apply fn
+        ).to.eventually.equal 7
+
+    it 'should work for a function that returns a scalar', ->
+        fn = -> 7
+
+        expect(
+            promiseBreaker.apply(fn)
+        ).to.eventually.equal 7
+
+    it 'should error if function has incorrect number of parameters', ->
+        fn = (a, b) -> 7
+
+        expect(
+            promiseBreaker.apply(fn, null, ["hello", "world", 6])
+        ).to.be.rejectedWith("Expected function with 3 arguments which returns Promise, " +
+            "or function with 4 arguments which takes callback.")
 
 
 describe "callFn", ->
@@ -94,3 +167,55 @@ describe "callFn", ->
             expect(err).to.not.exist
             expect(result).to.equal 6
             done()
+
+    it 'should work for a function that returns a scalar', ->
+        fn = -> 7
+
+        expect(
+            promiseBreaker.callFn(fn)
+        ).to.eventually.equal(7)
+
+    it 'should error if function has incorrect number of parameters', ->
+        fn = (a, b) -> 7
+
+        expect(
+            promiseBreaker.callFn(fn, 3, null, "hello", "world", 6)
+        ).to.be.rejectedWith("Expected function with 3 arguments which returns Promise, " +
+            "or function with 4 arguments which takes callback.")
+
+describe "call", ->
+    it 'should work for a function that expects a callback', ->
+        thisObj = {}
+        fn = (x, y, done) ->
+            expect(this).to.equal thisObj
+            done null, x + y
+
+        promiseBreaker.call(fn, thisObj, 2, 4)
+        .then (result) ->
+            expect(result).to.equal 6
+
+    it 'should work with a callback', (done) ->
+        fn = (x, y, done) ->
+            done null, x + y
+
+        promiseBreaker.call fn, null, 2, 4, (err, result) ->
+            expect(err).to.not.exist
+            expect(result).to.equal 6
+            done()
+
+        return null
+
+    it 'should work for a function that returns a scalar', ->
+        fn = -> 7
+
+        expect(
+            promiseBreaker.call(fn)
+        ).to.eventually.equal(7)
+
+    it 'should error if function has incorrect number of parameters', ->
+        fn = (a, b) -> 7
+
+        expect(
+            promiseBreaker.call(fn, null, "hello", "world", 6)
+        ).to.be.rejectedWith("Expected function with 3 arguments which returns Promise, " +
+            "or function with 4 arguments which takes callback.")

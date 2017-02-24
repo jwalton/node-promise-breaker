@@ -126,12 +126,20 @@ Much like [`Function.prototype.apply()`](https://developer.mozilla.org/en-US/doc
 this calls a function, but this lets you call into a function when you don't know whether the
 function is expecting a callback or is going to return a Promise.  `fn` is the function you wish
 to call, `argumentCount` is the number of arguments you expect the function to take (not including
-the callback).  Under the hood, this will call `fn` and pass in a callback as the
-`argumentCount + 1`th parameter.  If a Promise is returned, `applyFn` will assume `fn` is Promise
-based, otherwise `applyFn` will wait for the callback to be called.
+the callback).  Under the hood, if `fn.length` is equal to `argumentCount`, this will call `fn`
+with the parameters provided, and then return the Promise (or wrap a returned value in a Promise).
+If `fn.length` is `argumentCount + 1`, then a callback will be added.  In either case, if the
+number of arguments provided in `args` is less than `argumentCount`, `args` will be filled in
+with nulls.
 
 If `cb` is provided, `applyFn` will call into `cb` with a result, otherwise `applyFn` will itself
 return a Promise.
+
+Note `applyFn` will reject if `fn.length` is not `argumentCount` or `argumentCount + 1`.
+
+### pb.apply(fn, thisArg, args[, cb])
+
+Same as `applyFn`, but `argumentCount` is implicitly set to `args.length`.
 
 ### pb.callFn(fn, argumentCount, thisArg[, arg1[, arg2[, ...[, cb]]]])
 
@@ -144,6 +152,11 @@ Note that if you do not specify an `argumentCount` it will default to 0.  You ca
     .then(...)
 
 to call into a callback based function from inside promise-based code.
+
+### pb.call(fn, thisArg[, arg1[, arg2[, ...]]))
+
+Similar to `callFn`, but since we don't know the `argumentCount`, we base it on the number of arguments passed.  This
+always returns a Promise - if you want to use a callback, you need to use `callFn` instead.
 
 ### pb.withPromise(promiseImpl)
 

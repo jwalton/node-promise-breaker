@@ -112,37 +112,54 @@
 
         answer.applyFn = answer['break'](function(fn, argumentCount, thisArg, args) {
             argumentCount = argumentCount || 0;
+            args = args || [];
 
-            // Clone args
-            if(!args) {args = [];}
-            args = args.slice(0);
-            while(args.length < argumentCount) {
-                args.push(null);
-            }
+            return Promise.resolve()
+            .then(function() {
+                var isCallbackFn = argumentCount < fn.length;
+                var donePromise;
 
-            var donePromise = new (promiseImpl || globals.Promise)(function(resolve, reject) {
-                // Pass in a callback.
-                args[argumentCount] = function(err, result) {
-                    if(err) {
-                        reject(err);
-                    } else {
-                        resolve(result);
+                if(fn.length !== argumentCount && fn.length !== (argumentCount + 1)) {
+                    throw new Error("Expected function with " + argumentCount + " arguments which returns Promise, " +
+                        "or function with " + (argumentCount + 1) + " arguments which takes callback.");
+                }
+
+                if(args.length < argumentCount || isCallbackFn) {
+                    // Clone args
+                    args = args.slice(0);
+
+                    // Fill with nulls.
+                    while(args.length < argumentCount) {
+                        args.push(null);
                     }
-                };
+
+                    // Add a callback to `args` if required.
+                    if(isCallbackFn) {
+                        donePromise = new (promiseImpl || globals.Promise)(function(resolve, reject) {
+                            // Pass in a callback.
+                            args[argumentCount] = function(err, result) {
+                                if(err) {
+                                    reject(err);
+                                } else {
+                                    resolve(result);
+                                }
+                            };
+                        });
+                    }
+                }
+
+                var returnedPromise = fn.apply(thisArg, args);
+                return donePromise || returnedPromise;
             });
-
-            var returnedPromise = fn.apply(thisArg, args);
-            if(returnedPromise && returnedPromise.then) {
-                return returnedPromise;
-            }
-            return donePromise;
-
         });
 
-        answer.callFn = function() {
-            var fn = arguments[0];
-            var argumentCount = arguments[1] || 0;
-            var thisArg = arguments[2];
+        answer.apply = answer['break'](function(fn, thisArg, args) {
+            args = args || [];
+            return answer.applyFn(fn, args.length, thisArg, args);
+        })
+
+        answer.callFn = function(fn, argumentCount, thisArg) {
+            argumentCount = argumentCount || 0;
 
             var maxArgumentsToFetch = Math.min(arguments.length - 3, argumentCount);
             var args = [];
@@ -155,6 +172,11 @@
 
             return answer.applyFn(fn, argumentCount, thisArg, args, done);
         };
+
+        answer.call = function(fn, thisArg) {
+            var args = [].slice.call(arguments, 2);
+            return answer.apply(fn, thisArg, args);
+        }
 
         return answer;
     }
