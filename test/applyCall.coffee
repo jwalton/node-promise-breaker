@@ -66,20 +66,13 @@ describe "applyFn", ->
             promiseBreaker.applyFn(fn)
         ).to.eventually.equal 7
 
-    it 'should assume a function with too few parameters will return a promise', ->
-        fn = (a) -> 7
-
-        promiseBreaker.applyFn(fn, 3, null, ["hello", "world", 6])
-        .then (result) ->
-            expect(result).to.equal 7
-
     it 'should error if function has incorrect number of parameters', ->
-        fn = (a, b, c, d, e) -> 7
+        fn = (a, b) -> 7
 
         expect(
             promiseBreaker.applyFn(fn, 3, null, ["hello", "world", 6])
         ).to.be.rejectedWith("Expected function with 3 arguments which returns Promise, " +
-            "or function with 4 arguments which takes callback - got function with 5 arguments.")
+            "or function with 4 arguments which takes callback - got function with 2 arguments.")
 
 
 describe "apply", ->
@@ -131,20 +124,13 @@ describe "apply", ->
             promiseBreaker.apply(fn)
         ).to.eventually.equal 7
 
-    it 'should assume a function with too few parameters will return a promise', ->
-        fn = (a) -> 7
-
-        promiseBreaker.apply(fn, null, ["hello", "world", 6])
-        .then (result) ->
-            expect(result).to.equal 7
-
     it 'should error if function has incorrect number of parameters', ->
-        fn = (a, b, c, d, e) -> 7
+        fn = (a, b) -> 7
 
         expect(
             promiseBreaker.apply(fn, null, ["hello", "world", 6])
         ).to.be.rejectedWith("Expected function with 3 arguments which returns Promise, " +
-            "or function with 4 arguments which takes callback - got function with 5 arguments.")
+            "or function with 4 arguments which takes callback - got function with 2 arguments.")
 
 describe "callFn", ->
     it 'should work for a function that expects a callback', ->
@@ -188,20 +174,13 @@ describe "callFn", ->
             promiseBreaker.callFn(fn)
         ).to.eventually.equal(7)
 
-    it 'should assume a function with too few parameters will return a promise', ->
-        fn = (a) -> 7
-
-        promiseBreaker.callFn(fn, 3, null, "hello", "world", 6)
-        .then (result) ->
-            expect(result).to.equal 7
-
     it 'should error if function has incorrect number of parameters', ->
-        fn = (a, b, c, d, e) -> 7
+        fn = (a, b) -> 7
 
         expect(
             promiseBreaker.callFn(fn, 3, null, "hello", "world", 6)
         ).to.be.rejectedWith("Expected function with 3 arguments which returns Promise, " +
-            "or function with 4 arguments which takes callback - got function with 5 arguments.")
+            "or function with 4 arguments which takes callback - got function with 2 arguments.")
 
 describe "call", ->
     it 'should work for a function that expects a callback', ->
@@ -232,17 +211,10 @@ describe "call", ->
             promiseBreaker.call(fn)
         ).to.eventually.equal(7)
 
-    it 'should assume a function with too few parameters will return a promise', ->
-        fn = (a) -> 7
-
-        promiseBreaker.call(fn, null, "hello", "world", 6)
-        .then (result) ->
-            expect(result).to.equal 7
-
     it 'should error if function has incorrect number of parameters', ->
-        fn = (a, b, c, d, e) -> 7
+        fn = (a, b) -> 7
 
         expect(
             promiseBreaker.call(fn, null, "hello", "world", 6)
         ).to.be.rejectedWith("Expected function with 3 arguments which returns Promise, " +
-            "or function with 4 arguments which takes callback - got function with 5 arguments.")
+            "or function with 4 arguments which takes callback - got function with 2 arguments.")

@@ -115,7 +115,7 @@
             args = args || [];
 
 
-            if(fn.length > (argumentCount + 1)) {
+            if(fn.length !== argumentCount && fn.length !== (argumentCount + 1)) {
                 return Promise.reject(new Error("Expected function with " +
                     argumentCount + " arguments which returns Promise, " +
                     "or function with " + (argumentCount + 1) +
@@ -125,7 +125,7 @@
 
             return Promise.resolve()
             .then(function() {
-                var isCallbackFn = fn.length === argumentCount + 1;
+                var isCallbackFn = argumentCount < fn.length;
                 var donePromise;
 
                 if(args.length < argumentCount || isCallbackFn) {

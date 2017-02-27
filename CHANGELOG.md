@@ -1,3 +1,9 @@
+v4.0.3
+------
+Roll back v4.0.2.  If someone passes in a strange function that relies on
+`arguments`, then we'd throw an error fail in v4.0.0, but we do completely the
+wrong thing in v4.0.2.
+
 v4.0.2
 ------
 Relax error conditions for `callFn()` and `applyFn()`.  If a function is passed
