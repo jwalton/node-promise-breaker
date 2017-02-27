@@ -1,3 +1,8 @@
+v4.0.2
+------
+Relax error conditions for `callFn()` and `applyFn()`.  If a function is passed
+that takes too few parameters, we assume it is Promise based.
+
 v4.0.0
 ------
 
