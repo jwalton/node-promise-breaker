@@ -72,7 +72,7 @@ describe "applyFn", ->
         expect(
             promiseBreaker.applyFn(fn, 3, null, ["hello", "world", 6])
         ).to.be.rejectedWith("Expected function with 3 arguments which returns Promise, " +
-            "or function with 4 arguments which takes callback.")
+            "or function with 4 arguments which takes callback - got function with 2 arguments.")
 
 
 describe "apply", ->
@@ -130,8 +130,7 @@ describe "apply", ->
         expect(
             promiseBreaker.apply(fn, null, ["hello", "world", 6])
         ).to.be.rejectedWith("Expected function with 3 arguments which returns Promise, " +
-            "or function with 4 arguments which takes callback.")
-
+            "or function with 4 arguments which takes callback - got function with 2 arguments.")
 
 describe "callFn", ->
     it 'should work for a function that expects a callback', ->
@@ -181,7 +180,7 @@ describe "callFn", ->
         expect(
             promiseBreaker.callFn(fn, 3, null, "hello", "world", 6)
         ).to.be.rejectedWith("Expected function with 3 arguments which returns Promise, " +
-            "or function with 4 arguments which takes callback.")
+            "or function with 4 arguments which takes callback - got function with 2 arguments.")
 
 describe "call", ->
     it 'should work for a function that expects a callback', ->
@@ -218,4 +217,4 @@ describe "call", ->
         expect(
             promiseBreaker.call(fn, null, "hello", "world", 6)
         ).to.be.rejectedWith("Expected function with 3 arguments which returns Promise, " +
-            "or function with 4 arguments which takes callback.")
+            "or function with 4 arguments which takes callback - got function with 2 arguments.")

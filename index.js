@@ -114,15 +114,19 @@
             argumentCount = argumentCount || 0;
             args = args || [];
 
+
+            if(fn.length !== argumentCount && fn.length !== (argumentCount + 1)) {
+                return Promise.reject(new Error("Expected function with " +
+                    argumentCount + " arguments which returns Promise, " +
+                    "or function with " + (argumentCount + 1) +
+                    " arguments which takes callback - got function with " +
+                    fn.length + " arguments."));
+            }
+
             return Promise.resolve()
             .then(function() {
                 var isCallbackFn = argumentCount < fn.length;
                 var donePromise;
-
-                if(fn.length !== argumentCount && fn.length !== (argumentCount + 1)) {
-                    throw new Error("Expected function with " + argumentCount + " arguments which returns Promise, " +
-                        "or function with " + (argumentCount + 1) + " arguments which takes callback.");
-                }
 
                 if(args.length < argumentCount || isCallbackFn) {
                     // Clone args
