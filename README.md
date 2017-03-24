@@ -71,6 +71,20 @@ exports.myFunc = pb.break(function() {
 No matter which approach you take, users of your library can now call `myFunc(done)`, or they
 can call `myFunc().then(...)`.
 
+## Notes for using with Babel/ES6 Default Parameters
+
+In ES6, if a function has default parameters:
+
+    function test(a, b, c=7) {return Promise.resolve();}
+    
+The resulting function will have length 2 instead of 3.  This causes problems for promise-breaker:
+
+    const fn = pb.break(test);
+    fn(a, b, c).then(() => console.log('done!')); // Boom!
+    
+The problem here is, promise-breaker sees that three arguments are being passed, and the underlying function has length 2,
+so promise-breaker assumes the extra argument is a callback and tries to run it.  This is unfortunately not a trivial problem to solve.  There will be a fix for this in a future release, but for now the simple solution is to not use default parameters.
+
 ## API
 
 ### pb.make(fn)
