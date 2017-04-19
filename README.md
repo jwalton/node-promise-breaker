@@ -47,29 +47,85 @@ also pretty important if you prefer to write your library using Promises interna
 
 'promise-breaker' makes this really easy.  If you prefer writing in callback style:
 
-```
-// We're going to make some promises from callbacks
-var pb = require('promise-breaker');
-
-exports.myFunc = pb.make(function(done) {
-    done(null, "Hello World");
-});
+```js
+export function myFunc(done=null) {
+    return pb.addPromise(done, done => // Add this wrapper around your async function
+        doThing((err, thing) => {
+            if(err) {return done(err);}
+            doOtherThing(thing, (err, otherThing) => {
+                if(err) {return done(err);}
+                done(null, otherThing);
+            });
+        });
+    );
+}
 ```
 
 or if you prefer Promise style:
 
-
+```js
+export function myFunc(done=null) {
+    return pb.addCallback(done, // Add this wrapper around your returned Promise.
+        doThing()
+        .then(result => doOtherThing(result))
+    );
+}
 ```
-// We're going to break some promises down into callbacks
-var pb = require('promise-breaker')
 
-exports.myFunc = pb.break(function() {
+If you're using arrow functions or using commonjs exports, (and not using default parameters) it's even easier to use
+promise-breaker to create functions that generate a Promise or accept a callback:
+
+```js
+// Both of these will take an optional `done`, and if not provided return a Promise.
+exports.myPromiseFunc = pb.break(() => {
     return Promise.resolve("Hello World");
+});
+
+exports.myCbFunc = pb.make(done => {
+    done(null, "Hello World");
 });
 ```
 
-No matter which approach you take, users of your library can now call `myFunc(done)`, or they
-can call `myFunc().then(...)`.
+The names `make()` and `break()` here come from the idea that you are making a callback into a promise, or breaking
+a promise down into a callback.  As mentioned, the above does not work if you're using default parameters, as this
+relies on the `length` of the passed in function, and default parameters do not count towards the `length`:
+
+```js
+export const myFunc = pb.break((x, y=10) => {
+    return Promise.resolve("Hello World");
+});
+
+myFunc('a', 10); // This blows up!
+```
+
+Note this *does* work in coffee-script though, as coffee-script default parameters do count towards the `length`.
+
+Here, this blows up because `pb.break` expects `myFunc` to take only one parameter, so it thinks 10 should be the
+callback (which of course it can't be).
+
+
+The other thing you often want to do when writing a library is call into a function without knowing whether
+it returns a promise or expects a callback.  Again, promise-breaker makes this easy:
+
+```js
+export function doStuff(fn) {
+    // This works just like `fn.call` except it will add a `done` if `fn.length` is bigger than the parameter count.
+    // So here, this will either call `fn("hello world")` and get back a Promise or `fn("hello world", done)` and
+    // convert the callback into a Promise for you.
+    pb.call(fn, null, "hello world")
+    .catch(err => console.log(err));
+}
+```
+
+Or, in callback style:
+
+```js
+export function doStuff(fn) {
+    pb.callWithCb(fn, null, "hello world", err => {
+        if(err) return console.log(err);
+    });
+}
+```
 
 ## API
 
@@ -85,23 +141,25 @@ then (as of v3.0.0) any arguments after the error will be transformed into an ar
 single combined argument.  This does not affect the case where the transformed function is called with a callback.
 For example:
 
-    var myFunc = pb.make(function(callback) {
-        // We're returning multiple values via callback
-        callback(null, "a", "b");
-    })
+```js
+var myFunc = pb.make(function(callback) {
+    // We're returning multiple values via callback
+    callback(null, "a", "b");
+})
 
-    // Callback style
-    myFunc(function(err, a, b) {...});
+// Callback style
+myFunc(function(err, a, b) {...});
 
-    // Promise style
-    myFunc()
-    .then(function(results) {
-        // Promises only let us return a single value, so we return an array.
-        var a = results[0];
-        var b = results[1];
-        ...
-    })
-    .catch(function(err) {...});
+// Promise style
+myFunc()
+.then(function(results) {
+    // Promises only let us return a single value, so we return an array.
+    var a = results[0];
+    var b = results[1];
+    ...
+})
+.catch(function(err) {...});
+```
 
 Note that `pb.make()` uses `fn.length` to determine how many arguments the function expects normally,
 so `pb.make()` will not work with functions that do not explicitly define their arguments in
@@ -148,8 +206,10 @@ equivalent of `applyFn()`.
 
 Note that if you do not specify an `argumentCount` it will default to 0.  You can use this handy shortcut:
 
-    pb.callFn(function(done) {doSomething(x, y, z, done);})
-    .then(...)
+```js
+pb.callFn(function(done) {doSomething(x, y, z, done);})
+.then(...)
+```
 
 to call into a callback based function from inside promise-based code.
 
