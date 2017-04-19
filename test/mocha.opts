@@ -1,4 +1,3 @@
---compilers coffee:coffee-script/register
 --require ./test/setup.js
 --reporter spec
 --recursive
