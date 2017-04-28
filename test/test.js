@@ -7,11 +7,17 @@ const {expect} = chai;
 
 const promiseBreaker = require('../index');
 
-const makeTestCases = function(testFn, fns) {
-    it('should work when called with a callback', done => {
-        const fn = promiseBreaker[testFn](fns.add);
+const makeTestCases = function(testFn, fns, options=null) {
+    const optionsStr = options ? ' ' + (JSON.stringify(options)) : '';
 
-        expect(fn.length).to.equal(2);
+    function getTestFn(fn) {
+        return options ? promiseBreaker[testFn](options, fn) : promiseBreaker[testFn](fn);
+    }
+
+    it('should work when called with a callback' + optionsStr, done => {
+        const fn = getTestFn(fns.add);
+
+        if(options && options.preserveFunctionLength) {expect(fn.length).to.equal(2);}
         return fn(7, (err, result) => {
             if (err) { return done(err); }
             try {
@@ -24,17 +30,17 @@ const makeTestCases = function(testFn, fns) {
         });
     });
 
-    it('should return a promise with no callback', () => {
-        const fn = promiseBreaker[testFn](fns.add);
+    it('should return a promise with no callback' + optionsStr, () => {
+        const fn = getTestFn(fns.add);
 
         return fn(7)
         .then(result => expect(result).to.equal(8));
     });
 
-    it('should work for functions which return an error (cb)', done => {
-        const fn = promiseBreaker[testFn](fns.err);
+    it('should work for functions which return an error (cb)' + optionsStr, done => {
+        const fn = getTestFn(fns.err);
 
-        expect(fn.length).to.equal(2);
+        if(options && options.preserveFunctionLength) {expect(fn.length).to.equal(2);}
         return fn(7, err => {
             try {
                 expect(err).to.exist;
@@ -45,16 +51,16 @@ const makeTestCases = function(testFn, fns) {
         });
     });
 
-    it('should work for functions which return an error (p)', () => {
-        const fn = promiseBreaker[testFn](fns.err);
+    it('should work for functions which return an error (p)' + optionsStr, () => {
+        const fn = getTestFn(fns.err);
 
         expect(fn(7)).to.be.rejected;
     });
 
-    it('should work for a function with no parameters (cb)', done => {
-        const fn = promiseBreaker[testFn](fns.noParams);
+    it('should work for a function with no parameters (cb)' + optionsStr, done => {
+        const fn = getTestFn(fns.noParams);
 
-        expect(fn.length).to.equal(1);
+        if(options && options.preserveFunctionLength) {expect(fn.length).to.equal(1);}
         return fn((err, result) => {
             if (err) {return done(err);}
             try {
@@ -67,15 +73,15 @@ const makeTestCases = function(testFn, fns) {
         });
     });
 
-    it('should work for a function with no parameters (p)', () => {
-        const fn = promiseBreaker[testFn](fns.noParams);
+    it('should work for a function with no parameters (p)' + optionsStr, () => {
+        const fn = getTestFn(fns.noParams);
 
         return fn()
         .then(result => expect(result).to.equal("Hello World"));
     });
 
-    it('should set "this" correctly (cb)', done => {
-        const fn = promiseBreaker[testFn](fns.withThis);
+    it('should set "this" correctly (cb)' + optionsStr, done => {
+        const fn = getTestFn(fns.withThis);
 
         return fn.call({x: 7}, (err, result) => {
             if (err) { return done(err); }
@@ -89,16 +95,16 @@ const makeTestCases = function(testFn, fns) {
         });
     });
 
-    it('should set "this" correctly (p)', () => {
-        const fn = promiseBreaker[testFn](fns.withThis);
+    it('should set "this" correctly (p)' + optionsStr, () => {
+        const fn = getTestFn(fns.withThis);
 
         return fn.call({x: 7})
         .then(result => expect(result).to.equal(7));
     });
 
-    it('should fail with an intelligible error if no function is provided', () =>
+    it('should fail with an intelligible error if no function is provided' + optionsStr, () =>
         expect(
-            () => promiseBreaker[testFn](null)
+            () => getTestFn(null)
         ).to.throw('Function required')
     );
 };
@@ -123,6 +129,7 @@ describe('making promises (make)', () => {
     };
 
     makeTestCases('make', fns);
+    makeTestCases('make', fns, {preserveFunctionLength: true});
 
     it('should return undefined if the fn returns undefined', () => {
         const fn = promiseBreaker.make(done => done(null, undefined));
@@ -164,7 +171,7 @@ describe('making promises (make)', () => {
         }
     });
 
-    return it('should return multiple arguments passed to the callback as an array', () => {
+    it('should return multiple arguments passed to the callback as an array', () => {
         return Promise.resolve()
         .then(() => {
             const fn = promiseBreaker.make(done => done(null, "a", "b"));
@@ -178,6 +185,14 @@ describe('making promises (make)', () => {
         }).then(() => {
             const fn = promiseBreaker.make(done => done(null, "a"));
             return expect(fn()).to.eventually.eql("a");
+        });
+    });
+
+    it('should work for ES6 default parameters if you specify the argument count', () => {
+        const fn = promiseBreaker.make({args: 3}, (x, y=1, done=null) => done(null, x + y));
+        return fn(2)
+        .then(result => {
+            expect(result).to.equal(3);
         });
     });
 });
@@ -202,7 +217,17 @@ describe("making callbacks (break)", () => {
         }
     };
 
-    return makeTestCases('break', fns);
+    makeTestCases('break', fns);
+    makeTestCases('break', fns, {preserveFunctionLength: true});
+
+    it('should work for ES6 default parameters if you specify the argument count', () => {
+        const fn = promiseBreaker.break({args: 2}, (x, y=1) => Promise.resolve(x + y));
+
+        return promiseBreaker.call(done => fn(2, 1, done))
+        .then(result => {
+            expect(result).to.equal(3);
+        });
+    });
 });
 
 describe("Use custom promise", () => {

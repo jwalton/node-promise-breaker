@@ -72,37 +72,26 @@ export function myFunc(done=null) {
 }
 ```
 
-If you're using arrow functions or using commonjs exports, (and not using default parameters) it's even easier to use
+If you're using arrow functions or using commonjs exports, it's even easier to use
 promise-breaker to create functions that generate a Promise or accept a callback:
 
 ```js
 // Both of these will take an optional `done`, and if not provided return a Promise.
-exports.myPromiseFunc = pb.break(() => {
+exports.myPromiseFunc = pb.break({args: 0}, () => {
     return Promise.resolve("Hello World");
 });
 
-exports.myCbFunc = pb.make(done => {
+exports.myCbFunc = pb.make({args: 1}, done => {
     done(null, "Hello World");
 });
 ```
 
 The names `make()` and `break()` here come from the idea that you are making a callback into a promise, or breaking
-a promise down into a callback.  As mentioned, the above does not work if you're using default parameters, as this
-relies on the `length` of the passed in function, and default parameters do not count towards the `length`:
-
-```js
-export const myFunc = pb.break((x, y=10) => {
-    return Promise.resolve("Hello World");
-});
-
-myFunc('a', 10); // This blows up!
-```
-
-Note this *does* work in coffee-script though, as coffee-script default parameters do count towards the `length`.
-
-Here, this blows up because `pb.break` expects `myFunc` to take only one parameter, so it thinks 10 should be the
-callback (which of course it can't be).
-
+a promise down into a callback.  Note that `make()` and `break()` rely on the `.length` of the function you pass
+in.  In ES6, default parameters do not count towards the length of the function, so you need to explicitly tell
+promise-breaker how many parameters are expected in the `args` parameter.  If you're not using default arguments, you
+can omit the options parameter altogether, but this is a bad habit, as promise-breaker unfortunately has no way to
+detect if you get it wrong.
 
 The other thing you often want to do when writing a library is call into a function without knowing whether
 it returns a promise or expects a callback.  Again, promise-breaker makes this easy:
@@ -129,9 +118,81 @@ export function doStuff(fn) {
 
 ## API
 
-### pb.make(fn)
+### addPromise(done, fn)
 
-`make(fn)` takes a function which accepts a `callback(err, result)` as its last parameter, and
+Used to add Promise support to a callback-based function.
+
+Calls `fn(cb)`.  If `done` is provided, it is passed directly as `cb` and `addPromise` returns undefined.  If `done`
+is not provided, `addPromise` will generate an appropriate callback and return a Promise.  If `fn` is called with
+more than two arguments (with multiple results, in other words) then the Promise will resolve to an array of results.
+
+
+Use it like this:
+
+```js
+export function addAsync(x, y, done=null) {
+    return pb.addPromise(done, done => done(null, x + y));
+}
+```
+
+### addCallback(done, promise)
+
+Used to add callback support to a promise-based function.
+
+If `done` is not provided, returns the `promise` passed in.  If `done` is
+provided, this will wait for `promise` to resolve or reject and then call
+`done(err, result)` appropriately.  Note that `promise` can also be a
+function that takes no arguments and returns a Promise.
+
+Use it like this:
+
+```js
+export function addAsync(x, y, done=null) {
+    return pb.addCallback(done, Promise.resolve(x + y));
+}
+```
+
+### pb.apply(fn, thisArg, args[, cb])
+
+Much like [`Function.prototype.apply()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call),
+this calls a function, but this lets you call into a function when you don't know whether the
+function is expecting a callback or is going to return a Promise.  `fn` is the function you wish
+to call.  Under the hood, if `fn.length` is equal to `args.length`, this will call `fn`
+with the parameters provided, and then return the Promise (or wrap a returned value in a Promise).
+If `fn.length` is `args.length + 1`, then a callback will be added.
+
+If `cb` is provided, `apply` will call into `cb` with a result, otherwise `apply` will itself
+return a Promise.
+
+### pb.call(fn, thisArg[, arg1[, arg2[, ...]]))
+
+This is the [`Function.prototype.call()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call)
+equivalent of `apply()`.  Note that this always returns a Promise.  If you need a callback, use `callWithCb()`
+instead.
+
+Note that this is handy shortcut for promisifying a callback-based API:
+
+```js
+pb.call(done => fs.readFile(filename, {encoding: 'utf8'}, done))
+.then(fileContents => ...);
+```
+
+### pb.callWithCb(fn, argumentCount, thisArg[, arg1[, arg2[, ...[, cb]]]])
+
+Similar to `pb.call()`, but instead of returning a Promise this will call the provided callback.
+
+### pb.make([options,] fn)
+
+* `options.preserveFunctionLength` - As of v5.0.0, the function returned by `pb.make()` will have
+  `function.length == 0`.  In order to construct a function with the correct length, we have to
+  resort to `new Function()` or `eval`, both of which severely impact performance.  If you need the
+  length to be correct, set this option to `true`.
+* `options.args` - In ES6, default parameters do not count towards a functions `.length`.  If your `fn`
+  uses default parameters, you must specify the total parameter count in `args`.  E.g.:
+  `const myFn = pb.make({args: 2}, (x, y=null) => ...);`  If you do not specify `args`, then promise-breaker
+  will use `fn.length` instead.
+
+`make()` takes a function which accepts a `callback(err, result)` as its last parameter, and
 returns a new function which accepts an optional callback as its last parameter.  If a callback is
 provided, this new function will behave exactly like the original function.  If the callback
 is not provided, then the new function will return a Promise.
@@ -139,33 +200,43 @@ is not provided, then the new function will return a Promise.
 Since Promises only allow a single value to be returned, if `fn` passes more than two arguments to `callback(...)`,
 then (as of v3.0.0) any arguments after the error will be transformed into an array and returned via the Promise as a
 single combined argument.  This does not affect the case where the transformed function is called with a callback.
+
+Note that
+
 For example:
 
-```js
-var myFunc = pb.make(function(callback) {
-    // We're returning multiple values via callback
-    callback(null, "a", "b");
-})
+    var myFunc = pb.make(function(callback) {
+        // We're returning multiple values via callback
+        callback(null, "a", "b");
+    })
 
-// Callback style
-myFunc(function(err, a, b) {...});
+    // Callback style
+    myFunc(function(err, a, b) {...});
 
-// Promise style
-myFunc()
-.then(function(results) {
-    // Promises only let us return a single value, so we return an array.
-    var a = results[0];
-    var b = results[1];
-    ...
-})
-.catch(function(err) {...});
-```
+    // Promise style
+    myFunc()
+    .then(function(results) {
+        // Promises only let us return a single value, so we return an array.
+        var a = results[0];
+        var b = results[1];
+        ...
+    })
+    .catch(function(err) {...});
 
 Note that `pb.make()` uses `fn.length` to determine how many arguments the function expects normally,
 so `pb.make()` will not work with functions that do not explicitly define their arguments in
 their function declaration.
 
-### pb.break(fn)
+### pb.break([options,] fn)
+
+* `options.preserveFunctionLength` - As of v5.0.0, the function returned by `pb.break()` will have
+  `function.length == 0`.  In order to construct a function with the correct length, we have to
+  resort to `new Function()` or `eval`, both of which severely impact performance.  If you need the
+  length to be correct, set this option to `true`.
+* `options.args` - In ES6, default parameters do not count towards a functions `.length`.  If your `fn`
+  uses default parameters, you must specify the total parameter count in `args`.  E.g.:
+  `const myFn = pb.break({args: 3}, (x, y=null, done=null) => ...);`  If you do not specify `args`,
+  then promise-breaker will use `fn.length` instead.
 
 `break(fn)` is the opposite of `make(fn)`.  `fn` here is a function which returns a Promise.
 `break(fn)` will generate a new function with an extra parameter, an optional
@@ -178,47 +249,7 @@ Note that `pb.break()` uses `fn.length` to determine how many arguments the func
 so `pb.break()` will not work with functions that do not explicitly define their arguments in
 their function declaration.
 
-### pb.applyFn(fn, argumentCount, thisArg, args[, cb])
-
-Much like [`Function.prototype.apply()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call),
-this calls a function, but this lets you call into a function when you don't know whether the
-function is expecting a callback or is going to return a Promise.  `fn` is the function you wish
-to call, `argumentCount` is the number of arguments you expect the function to take (not including
-the callback).  Under the hood, if `fn.length` is equal to `argumentCount`, this will call `fn`
-with the parameters provided, and then return the Promise (or wrap a returned value in a Promise).
-If `fn.length` is `argumentCount + 1`, then a callback will be added.  In either case, if the
-number of arguments provided in `args` is less than `argumentCount`, `args` will be filled in
-with nulls.
-
-If `cb` is provided, `applyFn` will call into `cb` with a result, otherwise `applyFn` will itself
-return a Promise.
-
-Note `applyFn` will reject if `fn.length` is not `argumentCount` or `argumentCount + 1`.
-
-### pb.apply(fn, thisArg, args[, cb])
-
-Same as `applyFn`, but `argumentCount` is implicitly set to `args.length`.
-
-### pb.callFn(fn, argumentCount, thisArg[, arg1[, arg2[, ...[, cb]]]])
-
-This is the [`Function.prototype.call()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call)
-equivalent of `applyFn()`.
-
-Note that if you do not specify an `argumentCount` it will default to 0.  You can use this handy shortcut:
-
-```js
-pb.callFn(function(done) {doSomething(x, y, z, done);})
-.then(...)
-```
-
-to call into a callback based function from inside promise-based code.
-
-### pb.call(fn, thisArg[, arg1[, arg2[, ...]]))
-
-Similar to `callFn`, but since we don't know the `argumentCount`, we base it on the number of arguments passed.  This
-always returns a Promise - if you want to use a callback, you need to use `callFn` instead.
-
 ### pb.withPromise(promiseImpl)
 
-Returns a new `{make, break, applyFn, callFn}` object which uses the specified promiseImpl
-constructor to create new Promises.
+Returns a new `{make, break, addPromise, addCallback, apply, call, callWithCb}` object which
+uses the specified promiseImpl constructor to create new Promises.

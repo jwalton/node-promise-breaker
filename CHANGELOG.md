@@ -1,5 +1,8 @@
-v4.1.0
+v5.0.0
 ------
+* Breaking Change - `make()` and `break()` will now, by default, return a function
+  with a `.length` of 0.  If you need your function to have the correct length,
+  you will need to convert to using `addPromise()` or `addCallback()` instead.
 * Added `callWithCb()`, `addPromise()`, and `addCallback()`.
 * Remove node v4 and v5 from the travis tests, so we can write tests in ES6 syntax.
 * Convert tests to javascript, remove dev dependency on coffee-script.

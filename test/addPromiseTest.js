@@ -21,6 +21,23 @@ describe('addPromise', () => {
         });
     });
 
+    it('should return undefined if a callback is provided', done => {
+        function test(done = null) {
+            return pb.addPromise(done, done => done(null, 7));
+        }
+
+        let answer;
+
+        answer = test((err, result) => {
+            process.nextTick(() => {
+                expect(result).to.equal(7);
+                expect(answer).to.equal(undefined);
+                done();
+            })
+        });
+        console.log("ANSWER", answer, answer === undefined);
+    });
+
     it('should return multiple values as an array', () => {
         function test(done = null) {
             return pb.addPromise(done, done => done(null, 7, 14));

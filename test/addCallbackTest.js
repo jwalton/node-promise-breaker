@@ -27,8 +27,14 @@ describe('addCallback', () => {
         });
     });
 
+    // This is some hackery to prevent a "Potentially Unhandled Rejection" from showing up during testing.
+    // If we just create a promise that rejects immediately that has no `catch()` handler, then node.js freaks out.
+    const delayedReject = new Promise((resolve, reject) => {
+        setTimeout(() => reject(new Error('boom')), 100);
+    });
+
     [
-        {fn: Promise.reject(new Error('boom')), comment: 'promise'},
+        {fn: delayedReject, comment: 'promise'},
         {fn: () => Promise.reject(new Error('boom')), comment: 'fn'},
         {fn: () => {throw new Error('boom');}, comment: 'throw'}
     ].forEach(({fn, comment}) => {
