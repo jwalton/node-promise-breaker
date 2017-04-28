@@ -17,7 +17,6 @@ const makeTestCases = function(testFn, fns, options=null) {
     it('should work when called with a callback' + optionsStr, done => {
         const fn = getTestFn(fns.add);
 
-        if(options && options.preserveFunctionLength) {expect(fn.length).to.equal(2);}
         return fn(7, (err, result) => {
             if (err) { return done(err); }
             try {
@@ -40,7 +39,6 @@ const makeTestCases = function(testFn, fns, options=null) {
     it('should work for functions which return an error (cb)' + optionsStr, done => {
         const fn = getTestFn(fns.err);
 
-        if(options && options.preserveFunctionLength) {expect(fn.length).to.equal(2);}
         return fn(7, err => {
             try {
                 expect(err).to.exist;
@@ -60,7 +58,6 @@ const makeTestCases = function(testFn, fns, options=null) {
     it('should work for a function with no parameters (cb)' + optionsStr, done => {
         const fn = getTestFn(fns.noParams);
 
-        if(options && options.preserveFunctionLength) {expect(fn.length).to.equal(1);}
         return fn((err, result) => {
             if (err) {return done(err);}
             try {
@@ -129,7 +126,6 @@ describe('making promises (make)', () => {
     };
 
     makeTestCases('make', fns);
-    makeTestCases('make', fns, {preserveFunctionLength: true});
 
     it('should return undefined if the fn returns undefined', () => {
         const fn = promiseBreaker.make(done => done(null, undefined));
@@ -218,7 +214,6 @@ describe("making callbacks (break)", () => {
     };
 
     makeTestCases('break', fns);
-    makeTestCases('break', fns, {preserveFunctionLength: true});
 
     it('should work for ES6 default parameters if you specify the argument count', () => {
         const fn = promiseBreaker.break({args: 2}, (x, y=1) => Promise.resolve(x + y));

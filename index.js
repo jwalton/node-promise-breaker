@@ -14,21 +14,6 @@
     /* istanbul ignore next */
     var globals = global || window;
 
-    /* Returns an array of `count` unique identifiers. */
-    function makeParams(count) {
-        var answer = [];
-        for(var i = 0; i < count; i++) {
-            answer.push('p' + i);
-        }
-        return answer;
-    }
-
-    /* Converts an array of parameter names into a comma delimited list. */
-    function toList(params, extraParam, appendComma) {
-        if(extraParam) {params = params.concat([extraParam]);}
-        return params.join(", ") + (appendComma && params.length ? ',' : '');
-    }
-
     /* Returns true if `fn` is a function/ */
     function isFunction(fn) {
         return !!fn &&
@@ -56,37 +41,22 @@
 
         var pb = {};
 
-        function makePreserveFunctionLength(argumentCount, asyncFn) {
-            var args = makeParams(argumentCount - 1);
-            var fn = new Function(['argumentCount', 'asyncFn', 'Promise'],
-                'return function(' + toList(args, 'done') + ') {\n' +
-                '    if(done) {\n' +
-                '        return asyncFn.call(this, ' + toList(args, 'done') + ');\n' +
-                '    } else {\n' +
-                '        var _this = this;\n' +
-                '        return new Promise(function(resolve, reject) {\n' +
-                '            asyncFn.call(_this, ' + toList(args, null, true) + ' function(err, result) {\n' +
-                '                if(err) {\n' +
-                '                    reject(err);\n' +
-                '                } else {\n' +
-                                     // If multiple arguments were passed to the callback, turn them into an array.
-                '                    if(arguments.length > 2) {' +
-                '                        resolve([].slice.call(arguments, 1));' +
-                '                    } else {' +
-                '                        resolve(result);\n' +
-                '                    }' +
-                '                }\n' +
-                '            });\n' +
-                '        });\n' +
-                '    }\n' +
-                '};'
-            );
+        pb.make = function(options, asyncFn) {
+            if(!asyncFn) {
+                asyncFn = options;
+                options = {};
+            }
 
-            return fn(argumentCount, asyncFn, promiseImpl || globals.Promise);
-        }
+            if(!isFunction(asyncFn)) {throw new Error('Function required');}
+            if(asyncFn._promiseBroken) {
+                // Don't process the same function twice.
+                return asyncFn;
+            }
+            if(!promiseImpl) {validatePromise(globals.Promise);}
 
-        function makeZeroLength(argumentCount, asyncFn) {
-            return function() {
+            var argumentCount = options.args || asyncFn.length;
+
+            var answer = function() {
                 if(arguments.length === argumentCount) {
                     // There's a done function, so just call asyncFn
                     return asyncFn.apply(this, arguments);
@@ -113,71 +83,10 @@
                     });
                 }
             };
-        }
-
-        pb.make = function(options, asyncFn) {
-            if(!asyncFn) {
-                asyncFn = options;
-                options = {};
-            }
-
-            if(!isFunction(asyncFn)) {throw new Error('Function required');}
-            if(asyncFn._promiseBroken) {
-                // Don't process the same function twice.
-                return asyncFn;
-            }
-            if(!promiseImpl) {validatePromise(globals.Promise);}
-
-            var argumentCount = options.args || asyncFn.length;
-
-            var answer;
-            if(options && options.preserveFunctionLength) {
-                answer = makePreserveFunctionLength(argumentCount, asyncFn);
-            } else {
-                answer = makeZeroLength(argumentCount, asyncFn);
-            }
 
             answer._promiseBroken = true;
             return answer;
         };
-
-        function breakPreserveFunctionLength(argumentCount, promiseFn) {
-            var args = makeParams(argumentCount);
-            var params = ['this'].concat(args);
-
-            var fn = new Function(['promiseFn'],
-                'return function(' + toList(args, 'done') + ') {\n' +
-                '    if(done) {\n' +
-                '        promiseFn.call(' + toList(params) + ').then(\n' +
-                '            function(result) {done(null, result);},\n' +
-                '            function(err) {done(err);}\n' +
-                '        );\n' +
-                '        return null;\n' +
-                '    } else {\n' +
-                '        return promiseFn.call(' + toList(params) + ');\n' +
-                '    }\n' +
-                '};'
-            );
-            return fn(promiseFn);
-        }
-
-        function breakZeroLength(argumentCount, promiseFn) {
-            return function() {
-                if(arguments.length > argumentCount) {
-                    // There's an extra parameter.
-                    var done = arguments[arguments.length - 1];
-                    var args = [].slice.call(arguments, 0, arguments.length - 1);
-                    promiseFn.apply(this, args).then(
-                        function(result) {done(null, result);},
-                        function(err) {done(err);}
-                    );
-                    return undefined;
-                } else {
-                    // Pass straight through.
-                    return promiseFn.apply(this, arguments);
-                }
-            };
-        }
 
         pb['break'] = function(options, promiseFn) {
             if(!promiseFn) {
@@ -193,12 +102,21 @@
 
             var argumentCount = options.args || promiseFn.length;
 
-            var answer;
-            if(options.preserveFunctionLength) {
-                answer = breakPreserveFunctionLength(argumentCount, promiseFn);
-            } else {
-                answer = breakZeroLength(argumentCount, promiseFn);
-            }
+            var answer = function() {
+                if(arguments.length > argumentCount) {
+                    // There's an extra parameter.
+                    var done = arguments[arguments.length - 1];
+                    var args = [].slice.call(arguments, 0, arguments.length - 1);
+                    promiseFn.apply(this, args).then(
+                        function(result) {done(null, result);},
+                        function(err) {done(err);}
+                    );
+                    return undefined;
+                } else {
+                    // Pass straight through.
+                    return promiseFn.apply(this, arguments);
+                }
+            };
 
             answer._promiseBroken = true;
             return answer;
