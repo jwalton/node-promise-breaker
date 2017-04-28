@@ -14,7 +14,8 @@
     /* istanbul ignore next */
     var globals = global || window;
 
-    var makeParams = function(count) {
+    /* Returns an array of `count` unique identifiers. */
+    function makeParams(count) {
         var answer = [];
         for(var i = 0; i < count; i++) {
             answer.push('p' + i);
@@ -22,21 +23,20 @@
         return answer;
     }
 
-    var toList = function(params, extraParam) {
-        if(typeof extraParam !== "undefined" && extraParam !== null) {
-            params = params.concat([extraParam]);
-        }
-        return params.join(", ");
-
+    /* Converts an array of parameter names into a comma delimited list. */
+    function toList(params, extraParam, appendComma) {
+        if(extraParam) {params = params.concat([extraParam]);}
+        return params.join(", ") + (appendComma && params.length ? ',' : '');
     }
 
-    var isFunction = function(fn) {
+    /* Returns true if `fn` is a function/ */
+    function isFunction(fn) {
         return !!fn &&
             (typeof fn === 'object' || typeof fn === 'function') &&
             Object.prototype.toString.call(fn) === '[object Function]';
-    };
+    }
 
-    var validatePromise = function(p) {
+    function validatePromise(p) {
         if(!p) {
             throw new Error('Promise is undefined. Define Promise as global variable or call withPromise()');
         }
@@ -54,9 +54,9 @@
             validatePromise(promiseImpl);
         }
 
-        var answer = {};
+        var pb = {};
 
-        answer.make = function(asyncFn) {
+        pb.make = function(asyncFn) {
             if(!isFunction(asyncFn)) {throw new Error('Function required');}
             if(!promiseImpl) {validatePromise(globals.Promise);}
 
@@ -69,7 +69,7 @@
                 '    } else {\n' +
                 '        var _this = this;\n' +
                 '        return new Promise(function(resolve, reject) {\n' +
-                '            asyncFn.call(_this, ' + toList(args, '') + ' function(err, result) {\n' +
+                '            asyncFn.call(_this, ' + toList(args, null, true) + ' function(err, result) {\n' +
                 '                if(err) {\n' +
                 '                    reject(err);\n' +
                 '                } else {\n' +
@@ -88,7 +88,7 @@
             return fn(asyncFn, promiseImpl || globals.Promise);
         };
 
-        answer['break'] = function(promiseFn) {
+        pb['break'] = function(promiseFn) {
             if(!isFunction(promiseFn)) {throw new Error('Function required');}
 
             var args = makeParams(promiseFn.length);
@@ -110,20 +110,60 @@
             return fn(promiseFn);
         };
 
-        answer.applyFn = answer['break'](function(fn, argumentCount, thisArg, args) {
+        pb.addPromise = function(done, fn) {
+            var answer = null;
+            if(done) {
+                fn(done);
+            } else {
+                answer = new Promise((resolve, reject) => {
+                    fn(function(err, result) {
+                        if(err) {
+                            reject(err);
+                        } else if(arguments.length > 2) {
+                            // If multiple arguments were passed to the callback, then turn them into an array.
+                            resolve([].slice.call(arguments, 1));
+                        } else {
+                            resolve(result);
+                        }
+                    });
+                });
+            }
+            return answer;
+        };
+
+        pb.addCallback = function(done, promise) {
+            var answer;
+            if(!promise) {
+                throw new Error("addCallback() expected promise or function as second paramater");
+            } else if(isFunction(promise.then)) {
+                answer = promise;
+            } else if(isFunction(promise)) {
+                answer = Promise.resolve().then(function() {return promise();});
+            } else {
+                throw new Error("addCallback() don't know what to do with " + typeof(promise));
+            }
+
+            if(done) {
+                answer.then(function(result) {done(null, result);}, done);
+                answer = null;
+            }
+
+            return answer;
+        };
+
+        pb.applyFn = function(fn, argumentCount, thisArg, args, done) {
             argumentCount = argumentCount || 0;
             args = args || [];
 
-
             if(fn.length !== argumentCount && fn.length !== (argumentCount + 1)) {
-                return Promise.reject(new Error("Expected function with " +
+                return pb.addCallback(done, Promise.reject(new Error("Expected function with " +
                     argumentCount + " arguments which returns Promise, " +
                     "or function with " + (argumentCount + 1) +
                     " arguments which takes callback - got function with " +
-                    fn.length + " arguments."));
+                    fn.length + " arguments.")));
             }
 
-            return Promise.resolve()
+            return pb.addCallback(done, Promise.resolve()
             .then(function() {
                 var isCallbackFn = argumentCount < fn.length;
                 var donePromise;
@@ -132,9 +172,9 @@
                     // Clone args
                     args = args.slice(0);
 
-                    // Fill with nulls.
+                    // Fill with undefineds.
                     while(args.length < argumentCount) {
-                        args.push(null);
+                        args.push(undefined);
                     }
 
                     // Add a callback to `args` if required.
@@ -154,15 +194,15 @@
 
                 var returnedPromise = fn.apply(thisArg, args);
                 return donePromise || returnedPromise;
-            });
-        });
+            }));
+        };
 
-        answer.apply = answer['break'](function(fn, thisArg, args) {
+        pb.apply = function(fn, thisArg, args, done) {
             args = args || [];
-            return answer.applyFn(fn, args.length, thisArg, args);
-        })
+            return pb.applyFn(fn, args.length, thisArg, args, done);
+        };
 
-        answer.callFn = function(fn, argumentCount, thisArg) {
+        pb.callFn = function(fn, argumentCount, thisArg) {
             argumentCount = argumentCount || 0;
 
             var maxArgumentsToFetch = Math.min(arguments.length - 3, argumentCount);
@@ -174,15 +214,22 @@
             // Fetch `done` if it's there.
             var done = arguments[3 + argumentCount];
 
-            return answer.applyFn(fn, argumentCount, thisArg, args, done);
+            return pb.applyFn(fn, argumentCount, thisArg, args, done);
         };
 
-        answer.call = function(fn, thisArg) {
+        pb.call = function(fn, thisArg) {
             var args = [].slice.call(arguments, 2);
-            return answer.applyFn(fn, args.length, thisArg, args);
-        }
+            return pb.applyFn(fn, args.length, thisArg, args);
+        };
 
-        return answer;
+        pb.callWithCb = function(fn, thisArg) {
+            var args = [].slice.call(arguments, 2, arguments.length - 1);
+            var done = arguments[arguments.length - 1];
+            if(!isFunction(done)) {throw new Error("callWithCb requires function as last parameter.");}
+            return pb.applyFn(fn, args.length, thisArg, args, done);
+        };
+
+        return pb;
     }
 
     var usingDefaultPromise = exports.withPromise();

@@ -14,7 +14,6 @@
   "devDependencies": {
     "chai": "^3.0.0",
     "chai-as-promised": "^6.0.0",
-    "coffee-script": "^1.9.3",
     "coveralls": "^2.11.2",
     "es6-promise": "^4.0.5",
     "eslint": "^3.16.1",

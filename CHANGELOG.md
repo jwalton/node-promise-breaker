@@ -1,3 +1,9 @@
+v4.1.0
+------
+* Added `callWithCb()`, `addPromise()`, and `addCallback()`.
+* Remove node v4 and v5 from the travis tests, so we can write tests in ES6 syntax.
+* Convert tests to javascript, remove dev dependency on coffee-script.
+
 v4.0.3
 ------
 Roll back v4.0.2.  If someone passes in a strange function that relies on
