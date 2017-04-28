@@ -164,7 +164,7 @@ describe('making promises (make)', () => {
         }
     });
 
-    return it('should return multiple arguments passed to the callback as an array', () => {
+    it('should return multiple arguments passed to the callback as an array', () => {
         return Promise.resolve()
         .then(() => {
             const fn = promiseBreaker.make(done => done(null, "a", "b"));
@@ -178,6 +178,14 @@ describe('making promises (make)', () => {
         }).then(() => {
             const fn = promiseBreaker.make(done => done(null, "a"));
             return expect(fn()).to.eventually.eql("a");
+        });
+    });
+
+    it('should work for ES6 default parameters if you specify the argument count', () => {
+        const fn = promiseBreaker.make({args: 3}, (x, y=1, done=null) => done(null, x + y));
+        return fn(2)
+        .then(result => {
+            expect(result).to.equal(3);
         });
     });
 });
@@ -231,9 +239,18 @@ describe("Use custom promise", () => {
         return expect(result.foo).to.exist;
     });
 
-    return it('should fail if custom promise is not a constructor', () =>
+    it('should fail if custom promise is not a constructor', () =>
         expect(
             () => promiseBreaker.withPromise({})
         ).to.throw('Expect Promise to be a constructor')
     );
+
+    it('should work for ES6 default parameters if you specify the argument count', () => {
+        const fn = promiseBreaker.break({args: 2}, (x, y=1) => Promise.resolve(x + y));
+
+        return promiseBreaker.call(done => fn(2, 1, done))
+        .then(result => {
+            expect(result).to.equal(3);
+        });
+    });
 });

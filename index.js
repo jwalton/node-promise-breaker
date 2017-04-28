@@ -56,11 +56,17 @@
 
         var pb = {};
 
-        pb.make = function(asyncFn) {
+        pb.make = function(options, asyncFn) {
+            if(!asyncFn) {
+                asyncFn = options;
+                options = {};
+            }
+
             if(!isFunction(asyncFn)) {throw new Error('Function required');}
             if(!promiseImpl) {validatePromise(globals.Promise);}
 
-            var args = makeParams(asyncFn.length - 1);
+            var argumentCount = options.args || asyncFn.length;
+            var args = makeParams(argumentCount - 1);
 
             var fn = new Function(['asyncFn', 'Promise'],
                 'return function(' + toList(args, 'done') + ') {\n' +
@@ -88,10 +94,16 @@
             return fn(asyncFn, promiseImpl || globals.Promise);
         };
 
-        pb['break'] = function(promiseFn) {
+        pb['break'] = function(options, promiseFn) {
+            if(!promiseFn) {
+                promiseFn = options;
+                options = {};
+            }
+
             if(!isFunction(promiseFn)) {throw new Error('Function required');}
 
-            var args = makeParams(promiseFn.length);
+            var argumentCount = options.args || promiseFn.length;
+            var args = makeParams(argumentCount);
             var params = ['this'].concat(args);
 
             var fn = new Function(['promiseFn'],
