@@ -76,4 +76,18 @@ describe('addCallback', () => {
         );
 
     });
+
+    it('should deal correctly with exception from `done` (error case)', () => {
+        const fn = (done=null) => pb.addCallback(done, Promise.reject(new Error('boom1')));
+        const done = () => {throw new Error('boom')};
+
+        // We're calling into `fn`, but `done` is throwing an exception after `fn` is complete.  In
+        // an all-callback based world, this would cause an uncaught exception.  There's no better way to
+        // handle this, so make sure we get an uncaught exception here.
+        return expectUncaughtException(
+            () => fn(done)
+        );
+
+    });
+
 });

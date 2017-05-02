@@ -109,11 +109,11 @@
             var fn = new Function(['promiseFn'],
                 'return function(' + toList(args, 'done') + ') {\n' +
                 '    if(done) {\n' +
-                '        promiseFn.call(' + toList(params) + ').then(\n' +
                 // Call `done()` inside `setTimeout()`, so that if `done` throws an error, it will
                 // be turned into an uncaught exception, instead of being swallowed by the Promise.
+                '        promiseFn.call(' + toList(params) + ').then(\n' +
                 '            function(result) {setTimeout(function() {done(null, result);}, 0);},\n' +
-                '            function(err) {done(err);}\n' +
+                '            function(err) {setTimeout(function() {done(err);}, 0);}\n' +
                 '        );\n' +
                 '        return null;\n' +
                 '    } else {\n' +
@@ -158,13 +158,11 @@
             }
 
             if(done) {
+                // Call `done()` inside `setTimeout()`, so that if `done` throws an error, it will
+                // be turned into an uncaught exception, instead of being swallowed by the Promise.
                 answer.then(
-                    function(result) {
-                        // Call `done()` inside `setTimeout()`, so that if `done` throws an error, it will
-                        // be turned into an uncaught exception, instead of being swallowed by the Promise.
-                        setTimeout(function() {done(null, result);}, 0);
-                    },
-                    done
+                    function(result) {setTimeout(function() {done(null, result);}, 0);},
+                    function(err) {setTimeout(function() {done(err);}, 0);}
                 );
                 answer = null;
             }
