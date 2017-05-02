@@ -110,7 +110,9 @@
                 'return function(' + toList(args, 'done') + ') {\n' +
                 '    if(done) {\n' +
                 '        promiseFn.call(' + toList(params) + ').then(\n' +
-                '            function(result) {done(null, result);},\n' +
+                // Call `done()` inside `setTimeout()`, so that if `done` throws an error, it will
+                // be turned into an uncaught exception, instead of being swallowed by the Promise.
+                '            function(result) {setTimeout(function() {done(null, result);}, 0);},\n' +
                 '            function(err) {done(err);}\n' +
                 '        );\n' +
                 '        return null;\n' +
@@ -156,7 +158,14 @@
             }
 
             if(done) {
-                answer.then(function(result) {done(null, result);}, done);
+                answer.then(
+                    function(result) {
+                        // Call `done()` inside `setTimeout()`, so that if `done` throws an error, it will
+                        // be turned into an uncaught exception, instead of being swallowed by the Promise.
+                        setTimeout(function() {done(null, result);}, 0);
+                    },
+                    done
+                );
                 answer = null;
             }
 

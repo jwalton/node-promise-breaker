@@ -5,6 +5,7 @@ const chai = require('chai');
 chai.use(require('chai-as-promised'));
 const {expect} = chai;
 
+const {expectUncaughtException} = require('./testUtils');
 const promiseBreaker = require('../index');
 
 const makeTestCases = function(testFn, fns) {
@@ -252,5 +253,17 @@ describe("Use custom promise", () => {
         .then(result => {
             expect(result).to.equal(3);
         });
+    });
+
+    it('should deal correctly with exception from `done`', () => {
+        const fn = promiseBreaker.break(() => Promise.resolve('hello'));
+        const done = () => {throw new Error('boom')};
+
+        // We're calling into `fn`, but `done` is throwing an exception after `fn` is complete.  In
+        // an all-callback based world, this would cause an uncaught exception.  There's no better way to
+        // handle this, so make sure we get an uncaught exception here.
+        return expectUncaughtException(
+            () => fn(done)
+        );
     });
 });

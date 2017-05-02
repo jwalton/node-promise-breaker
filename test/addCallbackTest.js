@@ -1,10 +1,12 @@
 'use strict';
 
 const chai = require('chai');
-const pb = require('..');
 
 chai.use(require('chai-as-promised'));
 const {expect} = chai;
+
+const {expectUncaughtException} = require('./testUtils');
+const pb = require('..');
 
 describe('addCallback', () => {
     [
@@ -27,8 +29,12 @@ describe('addCallback', () => {
         });
     });
 
+    const rejected = Promise.reject(new Error('boom'));
+    // This is here to stop Node from raising a "Potentially Unhandled Rejection Error".
+    rejected.catch(() => null);
+
     [
-        {fn: Promise.reject(new Error('boom')), comment: 'promise'},
+        {fn: rejected, comment: 'promise'},
         {fn: () => Promise.reject(new Error('boom')), comment: 'fn'},
         {fn: () => {throw new Error('boom');}, comment: 'throw'}
     ].forEach(({fn, comment}) => {
@@ -56,5 +62,18 @@ describe('addCallback', () => {
         expect(
             () => pb.addCallback(null, {})
         ).to.throw('addCallback() don\'t know what to do with object');
+    });
+
+    it('should deal correctly with exception from `done`', () => {
+        const fn = (done=null) => pb.addCallback(done, Promise.resolve('hello'));
+        const done = () => {throw new Error('boom')};
+
+        // We're calling into `fn`, but `done` is throwing an exception after `fn` is complete.  In
+        // an all-callback based world, this would cause an uncaught exception.  There's no better way to
+        // handle this, so make sure we get an uncaught exception here.
+        return expectUncaughtException(
+            () => fn(done)
+        );
+
     });
 });
