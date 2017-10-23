@@ -174,9 +174,9 @@
             argumentCount = argumentCount || 0;
             args = args || [];
 
-            if(fn.length !== argumentCount && fn.length !== (argumentCount + 1)) {
+            if(fn.length > (argumentCount + 1)) {
                 return pb.addCallback(done, Promise.reject(new Error("Expected function with " +
-                    argumentCount + " arguments which returns Promise, " +
+                    argumentCount + " or fewer arguments which returns Promise, " +
                     "or function with " + (argumentCount + 1) +
                     " arguments which takes callback - got function with " +
                     fn.length + " arguments.")));
@@ -253,6 +253,7 @@
 
     var usingDefaultPromise = exports.withPromise();
     for(var k in usingDefaultPromise) {
+        /* istanbul ignore else */
         if ({}.hasOwnProperty.call(usingDefaultPromise, k)) {
             exports[k] = usingDefaultPromise[k];
         }

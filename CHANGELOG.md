@@ -1,3 +1,17 @@
+v4.1.2
+------
+* Relaxed rules for `apply()`, `call()`, and friends.  These used to require a
+  function that took exactly `n` arguments or `n+1` arguments (the Promise and
+  the callback cases, respectively).  These functions now also accept
+  functions with fewer parameters that return a Promise (possibly the function
+  you're calling into doesn't care about some of the parameters you are
+  passing).
+
+v4.1.1
+------
+* Correctly handle exceptions from callbacks - convert into uncaught exceptions
+  instead of unhandled rejections.
+
 v4.1.0
 ------
 * Added `callWithCb()`, `addPromise()`, and `addCallback()`.

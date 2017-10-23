@@ -65,12 +65,12 @@ describe("applyFn", () => {
     });
 
     it('should error if function has incorrect number of parameters', () => {
-        const fn = (a, b) => a + b;
+        const fn = (a, b, c, d, e) => a + e;
 
         return expect(
             promiseBreaker.applyFn(fn, 3, null, ["hello", "world", 6])
-        ).to.be.rejectedWith("Expected function with 3 arguments which returns Promise, " +
-            "or function with 4 arguments which takes callback - got function with 2 arguments.");
+        ).to.be.rejectedWith("Expected function with 3 or fewer arguments which returns Promise, " +
+            "or function with 4 arguments which takes callback - got function with 5 arguments.");
     });
 
     it('should add "undefined"s if we do not pass enough parameters', () => {
@@ -141,12 +141,12 @@ describe("apply", () => {
     });
 
     it('should error if function has incorrect number of parameters', () => {
-        const fn = (a, b) => a + b;
+        const fn = (a, b, c, d, e) => a + e;
 
         return expect(
             promiseBreaker.apply(fn, null, ["hello", "world", 6])
-        ).to.be.rejectedWith("Expected function with 3 arguments which returns Promise, " +
-            "or function with 4 arguments which takes callback - got function with 2 arguments.");
+        ).to.be.rejectedWith("Expected function with 3 or fewer arguments which returns Promise, " +
+            "or function with 4 arguments which takes callback - got function with 5 arguments.");
     });
 });
 
@@ -200,12 +200,12 @@ describe("callFn", () => {
     });
 
     it('should error if function has incorrect number of parameters', () => {
-        const fn = (a, b) => a + b;
+        const fn = (a, b, c, d, e) => a + e;
 
         expect(
             promiseBreaker.callFn(fn, 3, null, "hello", "world", 6)
-        ).to.be.rejectedWith("Expected function with 3 arguments which returns Promise, " +
-            "or function with 4 arguments which takes callback - got function with 2 arguments.");
+        ).to.be.rejectedWith("Expected function with 3 or fewer arguments which returns Promise, " +
+            "or function with 4 arguments which takes callback - got function with 5 arguments.");
     });
 
 });
@@ -247,12 +247,26 @@ describe("call", () => {
     });
 
     it('should error if function has incorrect number of parameters', () => {
-        const fn = (a, b) => a + b;
+        const fn = (a, b, c, d, e) => a + e;
 
         return expect(
             promiseBreaker.call(fn, null, "hello", "world", 6)
-        ).to.be.rejectedWith("Expected function with 3 arguments which returns Promise, " +
-            "or function with 4 arguments which takes callback - got function with 2 arguments.");
+        ).to.be.rejectedWith("Expected function with 3 or fewer arguments which returns Promise, " +
+            "or function with 4 arguments which takes callback - got function with 5 arguments.");
+    });
+
+    it('should pass if function has too few parameters', () => {
+        // Possibly the function you're calling isn't going to use all of your parameters, so we have to support
+        // this case.
+        const fn = (a, b) => Promise.resolve(a + b);
+
+        return expect(promiseBreaker.call(fn, null, 1, 2, 3)).to.eventually.equal(3);
+    });
+
+    it('should pass if function has too few parameters, scalar result', () => {
+        const fn = (a, b) => a + b;
+
+        return expect(promiseBreaker.call(fn, null, 1, 2, 3)).to.eventually.equal(3);
     });
 });
 
@@ -311,13 +325,13 @@ describe("callWithCb", () => {
     });
 
     it('should error if function has incorrect number of parameters', done => {
-        const fn = (a, b) => a + b;
+        const fn = (a, b, c, d, e) => a + e;
 
         promiseBreaker.callWithCb(fn, null, "hello", "world", 6, err => {
             try {
                 expect(err).to.exist;
-                expect(err.message).to.equal("Expected function with 3 arguments which returns Promise, " +
-                    "or function with 4 arguments which takes callback - got function with 2 arguments.");
+                expect(err.message).to.equal("Expected function with 3 or fewer arguments which returns Promise, " +
+                    "or function with 4 arguments which takes callback - got function with 5 arguments.");
                 done();
             } catch (err2) {
                 done(err2);

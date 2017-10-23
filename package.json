@@ -12,13 +12,13 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "chai": "^3.0.0",
-    "chai-as-promised": "^6.0.0",
-    "coveralls": "^2.11.2",
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "coveralls": "^3.0.0",
     "es6-promise": "^4.0.5",
-    "eslint": "^3.16.1",
+    "eslint": "^3.19.0",
     "istanbul": "^0.4.5",
-    "mocha": "^3.2.0"
+    "mocha": "^4.0.1"
   },
   "scripts": {
     "test": "istanbul cover _mocha && eslint ./index.js"
