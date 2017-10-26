@@ -1,3 +1,7 @@
+v4.1.3
+------
+* Support async/await functions.
+
 v4.1.2
 ------
 * Relaxed rules for `apply()`, `call()`, and friends.  These used to require a

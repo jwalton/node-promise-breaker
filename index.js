@@ -31,9 +31,10 @@
 
     /* Returns true if `fn` is a function/ */
     function isFunction(fn) {
+        var str = Object.prototype.toString.call(fn);
         return !!fn &&
             (typeof fn === 'object' || typeof fn === 'function') &&
-            Object.prototype.toString.call(fn) === '[object Function]';
+            (str === '[object Function]' || str === '[object AsyncFunction]');
     }
 
     function validatePromise(p) {
