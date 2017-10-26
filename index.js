@@ -130,7 +130,7 @@
             if(done) {
                 fn(done);
             } else {
-                answer = new Promise((resolve, reject) => {
+                answer = new Promise(function(resolve, reject) {
                     fn(function(err, result) {
                         if(err) {
                             reject(err);

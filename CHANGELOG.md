@@ -1,3 +1,7 @@
+v4.1.4
+------
+* Remove accidental ES6.  :)
+
 v4.1.3
 ------
 * Support async/await functions.
