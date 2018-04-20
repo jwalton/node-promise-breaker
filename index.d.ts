@@ -1,11 +1,11 @@
 // Global variable exported in browsers.
 export as namespace promiseBreaker;
 
-export interface MakeBreakOptions {
+interface MakeBreakOptions {
     args?: number;
 }
 
-export interface PromiseBreakerInstance {
+interface PromiseBreakerInstance {
     make(options: MakeBreakOptions, asyncFn: Function): Function;
     make(asyncFn: Function): Function;
     break(options: MakeBreakOptions, promiseFn: Function): Function;
@@ -18,7 +18,7 @@ export interface PromiseBreakerInstance {
     callWithCb(fn: Function, thisArg: any, ...parametersAndCallback: any[]): void;
 }
 
-export interface PromiseBreaker extends PromiseBreakerInstance {
+interface PromiseBreaker extends PromiseBreakerInstance {
     withPromise(promiseImpl: PromiseConstructor) : PromiseBreaker;
 }
 
