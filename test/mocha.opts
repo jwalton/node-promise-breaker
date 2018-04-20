@@ -2,4 +2,3 @@
 --reporter spec
 --recursive
 --check-leaks
---growl
