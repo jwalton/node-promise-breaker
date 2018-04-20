@@ -231,6 +231,7 @@ pb.call(done => fs.readFile(filename, {encoding: 'utf8'}, done))
 ### pb.callWithCb(fn, argumentCount, thisArg[, arg1[, arg2[, ...[, cb]]]])
 
 Similar to `pb.call()`, but instead of returning a Promise this will call the provided callback.
+
 ### pb.withPromise(promiseImpl)
 
 Returns a new `{make, break, addPromise, addCallback, apply, call, callWithCb}` object which uses the specified
