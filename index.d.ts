@@ -10,8 +10,8 @@ interface PromiseBreakerInstance {
     make(asyncFn: Function): Function;
     break(options: MakeBreakOptions, promiseFn: Function): Function;
     break(promiseFn: Function): Function;
-    addPromise(done: Function, asyncFn: Function): Promise<any> | null;
-    addCallback(done: Function, promiseFn: Function): Promise<any> | null;
+    addPromise(done: Function | undefined | null, asyncFn: Function): Promise<any> | null;
+    addCallback(done: Function | undefined | null, promiseFn: Function): Promise<any> | null;
     apply(fn: Function, thisArg?: any, args?: any[] | undefined) : Promise<any>;
     apply(fn: Function, thisArg: any, args: any[] | undefined, done: Function) : void;
     call(fn: Function, thisArg?: any, ...parameters: any[]) : Promise<any>;
