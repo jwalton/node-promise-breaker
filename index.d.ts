@@ -15,7 +15,7 @@ interface PromiseBreakerInstance {
 
     addCallback<T>(
         done: Function | undefined | null,
-        promise: (() => Promise<T>) | Promise<T>
+        promise: (() => Promise<T>) | (() => T) | Promise<T>
     ): Promise<T> | null;
 
     apply(fn: Function, thisArg?: any, args?: any[] | undefined) : Promise<any>;
