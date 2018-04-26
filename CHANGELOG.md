@@ -1,3 +1,8 @@
+v4.1.10
+-------
+
+* Add typescript support.
+
 v4.1.4
 ------
 * Remove accidental ES6.  :)
