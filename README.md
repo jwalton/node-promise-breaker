@@ -1,9 +1,8 @@
 [![Build Status](https://travis-ci.org/jwalton/node-promise-breaker.svg)](https://travis-ci.org/jwalton/node-promise-breaker)
 [![Coverage Status](https://coveralls.io/repos/jwalton/node-promise-breaker/badge.svg)](https://coveralls.io/r/jwalton/node-promise-breaker)
+[![Greenkeeper badge](https://badges.greenkeeper.io/jwalton/node-promise-breaker.svg)](https://greenkeeper.io/)
 
 ## What is it?
-
-[![Greenkeeper badge](https://badges.greenkeeper.io/jwalton/node-promise-breaker.svg)](https://greenkeeper.io/)
 
 `promise-breaker` makes it easy to write functions that will accept an optional callback, or return
 a Promise if a callback is not provided.  You can use callbacks or Promises in your implementation,
