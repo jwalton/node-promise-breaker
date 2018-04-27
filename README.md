@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/jwalton/node-promise-breaker.svg)](https://travis-ci.org/jwalton/node-promise-breaker)
 [![Coverage Status](https://coveralls.io/repos/jwalton/node-promise-breaker/badge.svg)](https://coveralls.io/r/jwalton/node-promise-breaker)
+[![Greenkeeper badge](https://badges.greenkeeper.io/jwalton/node-promise-breaker.svg)](https://greenkeeper.io/)
 
 ## What is it?
 
