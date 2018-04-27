@@ -3,6 +3,8 @@
 
 ## What is it?
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/jwalton/node-promise-breaker.svg)](https://greenkeeper.io/)
+
 `promise-breaker` makes it easy to write functions that will accept an optional callback, or return
 a Promise if a callback is not provided.  You can use callbacks or Promises in your implementation,
 and callers can call with either a callback or expect a Promise.  It's a library that makes it easy
