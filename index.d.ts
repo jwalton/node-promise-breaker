@@ -11,7 +11,7 @@ interface PromiseBreakerInstance {
     break(options: MakeBreakOptions, promiseFn: Function): Function;
     break(promiseFn: Function): Function;
 
-    addPromise(done: Function | undefined | null, asyncFn: Function): Promise<any> | null;
+    addPromise<T>(done: Function | undefined | null, asyncFn: Function): Promise<T> | void;
 
     addCallback<T>(
         done: Function | undefined | null,
