@@ -1,3 +1,11 @@
+<a name="4.1.11"></a>
+## [4.1.11](https://github.com/jwalton/node-promise-breaker/compare/v4.1.10...v4.1.11) (2018-05-07)
+
+
+### Bug Fixes
+
+* **typescript:** Add generic to `addPromise()`. ([de41bf2](https://github.com/jwalton/node-promise-breaker/commit/de41bf2))
+
 v4.1.10
 -------
 
