@@ -1,3 +1,10 @@
+## [4.1.12](https://github.com/jwalton/node-promise-breaker/compare/v4.1.11...v4.1.12) (2018-11-29)
+
+
+### Bug Fixes
+
+* Better typescript definitions. ([604b106](https://github.com/jwalton/node-promise-breaker/commit/604b106))
+
 <a name="4.1.11"></a>
 ## [4.1.11](https://github.com/jwalton/node-promise-breaker/compare/v4.1.10...v4.1.11) (2018-05-07)
 
