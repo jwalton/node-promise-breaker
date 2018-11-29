@@ -1,3 +1,10 @@
+## [4.1.13](https://github.com/jwalton/node-promise-breaker/compare/v4.1.12...v4.1.13) (2018-11-29)
+
+
+### Bug Fixes
+
+* Fix typescript def for addPromise. ([fa4fb38](https://github.com/jwalton/node-promise-breaker/commit/fa4fb38))
+
 ## [4.1.12](https://github.com/jwalton/node-promise-breaker/compare/v4.1.11...v4.1.12) (2018-11-29)
 
 
