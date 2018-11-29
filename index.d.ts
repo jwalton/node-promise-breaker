@@ -83,23 +83,7 @@ declare namespace PromiseBreaker {
 
         addPromise<R>(
             done: Callback<R> | undefined | null,
-            asyncFn: () => Promise<R>
-        ): BrokenFn0<R>;
-        addPromise<T1, R>(
-            done: Callback<R> | undefined | null,
-            asyncFn: (p1: T1) => Promise<R>
-        ): BrokenFn1<T1, R>;
-        addPromise<T1, T2, R>(
-            done: Callback<R> | undefined | null,
-            asyncFn: (p1: T1, p2: T2) => Promise<R>
-        ): BrokenFn2<T1, T2, R>;
-        addPromise<T1, T2, T3, R>(
-            done: Callback<R> | undefined | null,
-            asyncFn: (p1: T1, p2: T2, p3: T3) => Promise<R>
-        ): BrokenFn3<T1, T2, T3, R>;
-        addPromise<R>(
-            done: Callback<R> | undefined | null,
-            asyncFn: (...args: any[]) => Promise<R>
+            asyncFn: (cb: Callback<R>) => void
         ): Promise<R>;
 
         addCallback<R>(
