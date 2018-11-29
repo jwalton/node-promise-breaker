@@ -4,7 +4,7 @@ const chai = require('chai');
 const pb = require('..');
 
 chai.use(require('chai-as-promised'));
-const {expect} = chai;
+const { expect } = chai;
 
 describe('addPromise', () => {
     it('should convert a callback based function into a Promise based function', () => {
@@ -12,13 +12,15 @@ describe('addPromise', () => {
             return pb.addPromise(done, done => done(null, 7));
         }
 
-        return pb.call(done => test(done))
-        .then(result => {
-            expect(result, 'callback based').to.equal(7);
-            return test();
-        }).then(result => {
-            expect(result, 'promise based').to.equal(7);
-        });
+        return pb
+            .call(done => test(done))
+            .then(result => {
+                expect(result, 'callback based').to.equal(7);
+                return test();
+            })
+            .then(result => {
+                expect(result, 'promise based').to.equal(7);
+            });
     });
 
     it('should return multiple values as an array', () => {
@@ -28,7 +30,9 @@ describe('addPromise', () => {
 
         pb.call(done =>
             test((err, a, b) => {
-                if(err) {return done(err);}
+                if (err) {
+                    return done(err);
+                }
 
                 try {
                     expect(a, 'first param callback based').to.equal(7);
@@ -40,8 +44,8 @@ describe('addPromise', () => {
                 return null;
             })
         )
-        .then(() => test())
-        .then(result => expect(result, 'promise based').to.eql([7, 14]) );
+            .then(() => test())
+            .then(result => expect(result, 'promise based').to.eql([7, 14]));
     });
 
     it('should pass through errors', () => {
@@ -49,13 +53,8 @@ describe('addPromise', () => {
             return pb.addPromise(done, done => done(new Error('boom')));
         }
 
-        return expect(
-            pb.call(done => test(done)), 'callback based'
-        ).to.be.rejectedWith('boom')
-        .then(() =>
-            expect(
-                test(), 'promise based'
-            ).to.be.rejectedWith('boom')
-        );
+        return expect(pb.call(done => test(done)), 'callback based')
+            .to.be.rejectedWith('boom')
+            .then(() => expect(test(), 'promise based').to.be.rejectedWith('boom'));
     });
 });

@@ -6,8 +6,7 @@ exports.expectUncaughtException = function(fn) {
     return new Promise(resolve => {
         process.once('uncaughtException', resolve);
         fn();
-    })
-    .then(() => {
-        originalListeners.forEach(listener => process.on('uncaughtException', listener))
+    }).then(() => {
+        originalListeners.forEach(listener => process.on('uncaughtException', listener));
     });
-}
+};
