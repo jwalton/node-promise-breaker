@@ -21,7 +21,7 @@
     "coveralls": "^3.0.2",
     "es6-promise": "^4.2.5",
     "eslint": "^5.9.0",
-    "husky": "^1.2.0",
+    "husky": "^2.0.0",
     "istanbul": "^0.4.5",
     "mocha": "^6.0.0",
     "semantic-release": "^15.12.3"
