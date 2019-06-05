@@ -23,8 +23,8 @@
     "eslint": "^5.9.0",
     "husky": "^2.0.0",
     "istanbul": "^0.4.5",
-    "mocha": "^6.0.0",
-    "semantic-release": "^15.12.3"
+    "mocha": "^6.1.4",
+    "semantic-release": "^15.13.15"
   },
   "scripts": {
     "test": "eslint ./index.js && istanbul cover _mocha",
