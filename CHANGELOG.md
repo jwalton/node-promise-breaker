@@ -1,3 +1,13 @@
+# [5.0.0](https://github.com/jwalton/node-promise-breaker/compare/v4.1.13...v5.0.0) (2019-06-25)
+
+
+* feat(Drop support for node v6 and node v8.): ([187b75d](https://github.com/jwalton/node-promise-breaker/commit/187b75d))
+
+
+### BREAKING CHANGES
+
+* Drop support for node v6 and node v8.
+
 ## [4.1.13](https://github.com/jwalton/node-promise-breaker/compare/v4.1.12...v4.1.13) (2018-11-29)
 
 
