@@ -23,7 +23,7 @@
     "eslint": "^6.0.1",
     "husky": "^3.0.0",
     "istanbul": "^0.4.5",
-    "mocha": "^6.1.4",
+    "mocha": "^7.0.0",
     "semantic-release": "^15.13.15"
   },
   "scripts": {
