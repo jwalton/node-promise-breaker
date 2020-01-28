@@ -14,7 +14,7 @@
   "dependencies": {},
   "devDependencies": {
     "@jwalton/semantic-release-config": "^1.0.0",
-    "@semantic-release/changelog": "^3.0.1",
+    "@semantic-release/changelog": "^5.0.0",
     "@semantic-release/git": "^7.0.5",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
