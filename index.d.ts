@@ -103,4 +103,54 @@ declare namespace PromiseBreaker {
 }
 
 declare const PromiseBreaker: PromiseBreaker.PromiseBreaker;
-export = PromiseBreaker;
+export default PromiseBreaker;
+
+export function make<R>(
+    options: PromiseBreaker.MakeBreakOptions,
+    asyncFn: (cb: PromiseBreaker.Callback<R>) => void
+): PromiseBreaker.BrokenFn0<R>;
+export function make<T1, R>(
+    options: PromiseBreaker.MakeBreakOptions,
+    asyncFn: (p1: T1, cb: PromiseBreaker.Callback<R>) => void
+): PromiseBreaker.BrokenFn1<T1, R>;
+export function make<T1, T2, R>(
+    options: PromiseBreaker.MakeBreakOptions,
+    asyncFn: (p1: T1, p2: T2, cb: PromiseBreaker.Callback<R>) => void
+): PromiseBreaker.BrokenFn2<T1, T2, R>;
+export function make<T1, T2, T3, R>(
+    options: PromiseBreaker.MakeBreakOptions,
+    asyncFn: (p1: T1, p2: T2, p3: T3, cb: PromiseBreaker.Callback<R>) => void
+): PromiseBreaker.BrokenFn3<T1, T2, T3, R>;
+export function make<R = any>(
+    options: PromiseBreaker.MakeBreakOptions,
+    asyncFn: (...args: any[]) => any
+): (...args: any[]) => Promise<R>;
+
+export function make<R>(
+    asyncFn: (cb: PromiseBreaker.Callback<R>) => void
+): PromiseBreaker.BrokenFn0<R>;
+export function make<T1, R>(
+    asyncFn: (p1: T1, cb: PromiseBreaker.Callback<R>) => void
+): PromiseBreaker.BrokenFn1<T1, R>;
+export function make<T1, T2, R>(
+    asyncFn: (p1: T1, p2: T2, cb: PromiseBreaker.Callback<R>) => void
+): PromiseBreaker.BrokenFn2<T1, T2, R>;
+export function make<T1, T2, T3, R>(
+    asyncFn: (p1: T1, p2: T2, p3: T3, cb: PromiseBreaker.Callback<R>) => void
+): PromiseBreaker.BrokenFn3<T1, T2, T3, R>;
+export function make<R = any>(asyncFn: (...args: any[]) => any): (...args: any[]) => Promise<R>;
+
+export function addPromise<R>(
+    done: PromiseBreaker.Callback<R> | undefined | null,
+    asyncFn: (cb: PromiseBreaker.Callback<R>) => void
+): Promise<R>;
+
+export function addCallback<R>(
+    done: PromiseBreaker.Callback<R> | undefined | null,
+    promise: (() => Promise<R>) | (() => R) | Promise<R>
+): Promise<R>;
+
+export function apply(fn: Function, thisArg?: any, args?: any[] | undefined): Promise<any>;
+export function apply(fn: Function, thisArg: any, args: any[] | undefined, done: Function): void;
+export function call(fn: Function, thisArg?: any, ...parameters: any[]): Promise<any>;
+export function callWithCb(fn: Function, thisArg: any, ...parametersAndCallback: any[]): void;

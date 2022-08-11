@@ -35,11 +35,11 @@
         "prepare": "husky install"
     },
     "lint-staged": {
-        "src/**/*.ts": [
-            "tslint -c tslint.json -t stylish"
+        "src/**/*.js": [
+            "eslint"
         ],
-        "test/**/*.ts": [
-            "tslint -c test/tslint.json -t stylish"
+        "test/**/*.js": [
+            "tslint"
         ]
     },
     "keywords": [

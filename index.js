@@ -1,4 +1,4 @@
-(function(root, factory) {
+(function (root, factory) {
     /* istanbul ignore next */
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
@@ -10,7 +10,7 @@
         // Browser globals
         factory((root.promiseBreaker = {}));
     }
-})(this, function(exports) {
+})(this, function (exports) {
     /* istanbul ignore next */
     var globals = global || window;
 
@@ -53,7 +53,7 @@
     }
 
     /* Note if `promiseImpl` is `null`, this will use globals.Promise. */
-    exports.withPromise = function(promiseImpl) {
+    exports.withPromise = function (promiseImpl) {
         // If a promise implementation is provided, we can validate it right away, and fail
         // earlier.  If not, we can't validate globals.Promise, since globals.Promise might
         // get polyfilled after promise-breaker is initialized.
@@ -63,7 +63,7 @@
 
         var pb = {};
 
-        pb.make = function(options, asyncFn) {
+        pb.make = function (options, asyncFn) {
             if (!asyncFn) {
                 asyncFn = options;
                 options = {};
@@ -112,7 +112,7 @@
             return fn(asyncFn, promiseImpl || globals.Promise);
         };
 
-        pb['break'] = function(options, promiseFn) {
+        pb['break'] = function (options, promiseFn) {
             if (!promiseFn) {
                 promiseFn = options;
                 options = {};
@@ -151,13 +151,13 @@
             return fn(promiseFn);
         };
 
-        pb.addPromise = function(done, fn) {
+        pb.addPromise = function (done, fn) {
             var answer = null;
             if (done) {
                 fn(done);
             } else {
-                answer = new Promise(function(resolve, reject) {
-                    fn(function(err, result) {
+                answer = new Promise(function (resolve, reject) {
+                    fn(function (err, result) {
                         if (err) {
                             reject(err);
                         } else if (arguments.length > 2) {
@@ -172,14 +172,14 @@
             return answer;
         };
 
-        pb.addCallback = function(done, promise) {
+        pb.addCallback = function (done, promise) {
             var answer;
             if (!promise) {
                 throw new Error('addCallback() expected promise or function as second paramater');
             } else if (isFunction(promise.then)) {
                 answer = promise;
             } else if (isFunction(promise)) {
-                answer = Promise.resolve().then(function() {
+                answer = Promise.resolve().then(function () {
                     return promise();
                 });
             } else {
@@ -190,13 +190,13 @@
                 // Call `done()` inside `setTimeout()`, so that if `done` throws an error, it will
                 // be turned into an uncaught exception, instead of being swallowed by the Promise.
                 answer.then(
-                    function(result) {
-                        setTimeout(function() {
+                    function (result) {
+                        setTimeout(function () {
                             done(null, result);
                         }, 0);
                     },
-                    function(err) {
-                        setTimeout(function() {
+                    function (err) {
+                        setTimeout(function () {
                             done(err);
                         }, 0);
                     }
@@ -207,7 +207,7 @@
             return answer;
         };
 
-        pb.applyFn = function(fn, argumentCount, thisArg, args, done) {
+        pb.applyFn = function (fn, argumentCount, thisArg, args, done) {
             argumentCount = argumentCount || 0;
             args = args || [];
 
@@ -231,7 +231,7 @@
 
             return pb.addCallback(
                 done,
-                Promise.resolve().then(function() {
+                Promise.resolve().then(function () {
                     var isCallbackFn = argumentCount < fn.length;
                     var donePromise;
 
@@ -246,12 +246,12 @@
 
                         // Add a callback to `args` if required.
                         if (isCallbackFn) {
-                            donePromise = new (promiseImpl || globals.Promise)(function(
+                            donePromise = new (promiseImpl || globals.Promise)(function (
                                 resolve,
                                 reject
                             ) {
                                 // Pass in a callback.
-                                args[argumentCount] = function(err, result) {
+                                args[argumentCount] = function (err, result) {
                                     if (err) {
                                         reject(err);
                                     } else {
@@ -268,12 +268,12 @@
             );
         };
 
-        pb.apply = function(fn, thisArg, args, done) {
+        pb.apply = function (fn, thisArg, args, done) {
             args = args || [];
             return pb.applyFn(fn, args.length, thisArg, args, done);
         };
 
-        pb.callFn = function(fn, argumentCount, thisArg) {
+        pb.callFn = function (fn, argumentCount, thisArg) {
             argumentCount = argumentCount || 0;
 
             var maxArgumentsToFetch = Math.min(arguments.length - 3, argumentCount);
@@ -288,12 +288,12 @@
             return pb.applyFn(fn, argumentCount, thisArg, args, done);
         };
 
-        pb.call = function(fn, thisArg) {
+        pb.call = function (fn, thisArg) {
             var args = [].slice.call(arguments, 2);
             return pb.applyFn(fn, args.length, thisArg, args);
         };
 
-        pb.callWithCb = function(fn, thisArg) {
+        pb.callWithCb = function (fn, thisArg) {
             var args = [].slice.call(arguments, 2, arguments.length - 1);
             var done = arguments[arguments.length - 1];
             if (!isFunction(done)) {
@@ -305,13 +305,13 @@
         return pb;
     };
 
-    var usingDefaultPromise = exports.withPromise();
-    for (var k in usingDefaultPromise) {
+    exports.default = exports.withPromise();
+    for (var k in exports.default) {
         /* istanbul ignore else */
-        if ({}.hasOwnProperty.call(usingDefaultPromise, k)) {
-            exports[k] = usingDefaultPromise[k];
+        if ({}.hasOwnProperty.call(exports.default, k)) {
+            exports[k] = exports.default[k];
         }
     }
 
-    exports.usingDefaultPromise = usingDefaultPromise;
+    exports.usingDefaultPromise = exports.default;
 });
