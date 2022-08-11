@@ -11,23 +11,22 @@
         "type": "git",
         "url": "https://github.com/jwalton/node-promise-breaker"
     },
-    "dependencies": {},
     "devDependencies": {
         "@jwalton/semantic-release-config": "^1.0.0",
-        "@semantic-release/changelog": "^5.0.0",
-        "@semantic-release/git": "^9.0.0",
+        "@semantic-release/changelog": "^6.0.1",
+        "@semantic-release/git": "^10.0.1",
         "chai": "^4.2.0",
         "chai-as-promised": "^7.1.1",
         "coveralls": "^3.0.2",
         "es6-promise": "^4.2.5",
-        "eslint": "^7.0.0",
-        "husky": "^7.0.0",
+        "eslint": "^8.21.0",
+        "husky": "^8.0.1",
         "istanbul": "^0.4.5",
-        "lint-staged": "^11.0.0",
-        "mocha": "^9.0.1",
+        "lint-staged": "^13.0.3",
+        "mocha": "^10.0.0",
         "prettier": "^2.3.1",
         "pretty-quick": "^3.1.1",
-        "semantic-release": "^17.1.1"
+        "semantic-release": "^19.0.3"
     },
     "scripts": {
         "test": "eslint ./index.js && istanbul cover _mocha",
